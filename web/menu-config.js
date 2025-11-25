@@ -23,6 +23,12 @@ const menuConfig = [
         id: "character-upload"
     },
     {
+        title: "场景资源管理",
+        icon: "🏞️",
+        url: "./scene-upload.html",
+        id: "scene-upload"
+    },
+    {
         title: "Prompt 生成器",
         icon: "🎨",
         url: "./prompt-generator.html",

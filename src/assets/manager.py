@@ -177,6 +177,7 @@ class AssetManager:
         style: str = "",
         tags: Optional[List[str]] = None,
         image_path: Optional[str] = None,
+        images: Optional[Dict[str, str]] = None,
         metadata: Optional[Dict[str, Any]] = None
     ) -> Scene:
         """添加场景资源
@@ -190,7 +191,9 @@ class AssetManager:
             mood: 氛围
             style: 风格
             tags: 标签列表
-            image_path: 图片路径
+            image_path: 主图片路径（保留用于兼容性，建议使用images）
+            images: 图片字典，key为图片标签，value为图片路径
+                    常见视角标签：front_view, side_view, top_view, bottom_view, wide_view, close_view等
             metadata: 额外元数据
             
         Returns:
@@ -208,10 +211,23 @@ class AssetManager:
             metadata=metadata or {},
         )
         
+        # 保存主图片（兼容旧接口）
         if image_path:
             scene.image_path = self.storage.save_image(
                 image_path, scene.id, ResourceType.SCENE
             )
+        
+        # 保存多视角图片
+        if images:
+            for label, img_path in images.items():
+                if img_path:
+                    saved_path = self.storage.save_image(
+                        img_path,
+                        scene.id,
+                        ResourceType.SCENE,
+                        suffix=f"_{label}"
+                    )
+                    scene.add_image(label, saved_path)
         
         self.storage.add_to_index(scene)
         return scene
@@ -323,6 +339,12 @@ class AssetManager:
             for expression_path in resource.expressions.values():
                 if expression_path:
                     self.storage.delete_image(expression_path)
+        
+        # 如果是场景资源，删除多视角图片
+        if isinstance(resource, Scene):
+            for image_path in resource.images.values():
+                if image_path:
+                    self.storage.delete_image(image_path)
         
         # 从索引中移除
         self.storage.remove_from_index(resource_id)
@@ -532,6 +554,70 @@ class AssetManager:
             scenes = [s for s in scenes if s.style == style]
         
         return scenes[0] if scenes else None
+    
+    def add_scene_image(
+        self,
+        scene_id: str,
+        label: str,
+        image_path: str
+    ) -> bool:
+        """为场景添加图片
+        
+        Args:
+            scene_id: 场景ID
+            label: 图片标签（如：front_view, side_view, top_view等）
+            image_path: 图片路径
+            
+        Returns:
+            是否添加成功
+        """
+        scene = self.get_resource(scene_id)
+        if not isinstance(scene, Scene):
+            return False
+        
+        # 保存图片
+        saved_path = self.storage.save_image(
+            image_path,
+            scene.id,
+            ResourceType.SCENE,
+            suffix=f"_{label}"
+        )
+        
+        # 添加到场景
+        scene.add_image(label, saved_path)
+        self.update_resource(scene)
+        return True
+    
+    def remove_scene_image(
+        self,
+        scene_id: str,
+        label: str
+    ) -> bool:
+        """移除场景的图片
+        
+        Args:
+            scene_id: 场景ID
+            label: 图片标签
+            
+        Returns:
+            是否移除成功
+        """
+        scene = self.get_resource(scene_id)
+        if not isinstance(scene, Scene):
+            return False
+        
+        # 获取图片路径
+        image_path = scene.get_image(label)
+        if not image_path:
+            return False
+        
+        # 删除图片文件
+        self.storage.delete_image(image_path)
+        
+        # 从场景中移除
+        scene.remove_image(label)
+        self.update_resource(scene)
+        return True
     
     def _dict_to_asset(self, data: Dict[str, Any]) -> Asset:
         """将字典转换为资源对象

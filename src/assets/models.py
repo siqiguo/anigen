@@ -301,12 +301,51 @@ class Scene(Asset):
     """场景资源
     
     用于动画中的场景资源，如地点、环境等。
+    支持多个视角的图片，如：正面视角、侧面视角、俯视图、仰视图等。
     """
     location_type: str = ""  # 场景类型（如：室内、室外、城市、自然等）
     time_of_day: Optional[str] = None  # 时间（如：白天、夜晚、黄昏等）
     weather: Optional[str] = None  # 天气
     mood: str = ""  # 氛围（如：温馨、紧张、神秘等）
     style: str = ""  # 风格
+    # 图片字典，key为图片标签（如：front_view, side_view, top_view, bottom_view等或自定义标签），value为图片路径
+    images: Dict[str, str] = field(default_factory=dict)  # 图片路径字典
+    
+    def add_image(self, label: str, image_path: str) -> None:
+        """添加图片
+        
+        Args:
+            label: 图片标签（如：front_view, side_view, top_view, bottom_view, 自定义标签等）
+            image_path: 图片路径
+        """
+        self.images[label] = image_path
+        self.updated_at = datetime.now()
+    
+    def remove_image(self, label: str) -> bool:
+        """移除图片
+        
+        Args:
+            label: 图片标签
+            
+        Returns:
+            是否成功移除
+        """
+        if label in self.images:
+            del self.images[label]
+            self.updated_at = datetime.now()
+            return True
+        return False
+    
+    def get_image(self, label: str) -> Optional[str]:
+        """获取图片路径
+        
+        Args:
+            label: 图片标签
+            
+        Returns:
+            图片路径，如果不存在返回None
+        """
+        return self.images.get(label)
     
     def __post_init__(self):
         """初始化后处理"""
@@ -321,6 +360,7 @@ class Scene(Asset):
             "weather": self.weather,
             "mood": self.mood,
             "style": self.style,
+            "images": self.images,
         })
         return base_dict
     
@@ -328,7 +368,7 @@ class Scene(Asset):
     def from_dict(cls, data: Dict[str, Any]) -> "Scene":
         """从字典创建场景对象"""
         asset_data = {k: v for k, v in data.items() 
-                     if k not in ["location_type", "time_of_day", "weather", "mood", "style"]}
+                     if k not in ["location_type", "time_of_day", "weather", "mood", "style", "images"]}
         asset = Asset.from_dict(asset_data)
         return cls(
             id=asset.id,
@@ -345,6 +385,7 @@ class Scene(Asset):
             weather=data.get("weather"),
             mood=data.get("mood", ""),
             style=data.get("style", ""),
+            images=data.get("images", {}),
         )
 
 

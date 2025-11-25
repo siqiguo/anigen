@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>场景资源上传 - AniGen</title>
+    <link rel="stylesheet" href="./styles.css">
+    <style>
+        .upload-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 2rem;
+        }
+
+        .file-upload-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .file-upload-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            background: var(--background);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-input-button:hover {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .file-input-button.has-file {
+            border-color: var(--success-color);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .scene-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .scene-card {
+            background: var(--background);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: box-shadow 0.2s;
+        }
+
+        .scene-card:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .scene-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .scene-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .scene-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .scene-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+        }
+
+        .scene-images {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .scene-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 6px;
+            box-shadow: var(--shadow);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            margin-bottom: -2px;
+        }
+
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .success-message {
+            padding: 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success-color);
+            border-radius: 6px;
+            color: #065f46;
+            margin-bottom: 1rem;
+        }
+
+        .error-message {
+            padding: 1rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            border-radius: 6px;
+            color: #991b1b;
+            margin-bottom: 1rem;
+        }
+
+        /* 图片项样式 */
+        .image-item {
+            background: var(--background);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .image-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .image-item-label {
+            flex: 1;
+            margin-right: 1rem;
+        }
+
+        .image-item-label select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        .image-item-label input[type="text"] {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            margin-top: 0.5rem;
+        }
+
+        .image-item-remove {
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .image-item-remove:hover {
+            background: #dc2626;
+        }
+
+        .image-item-content {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 1rem;
+            align-items: start;
+        }
+
+        .image-item-preview {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 6px;
+            box-shadow: var(--shadow);
+        }
+
+        .image-item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .label-type-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .label-type-toggle button {
+            padding: 0.25rem 0.75rem;
+            border: 1px solid var(--border-color);
+            background: var(--surface);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .label-type-toggle button.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- 应用布局 -->
+    <div class="app-layout">
+        <!-- 移动端菜单按钮 -->
+        <button id="mobile-menu-toggle" class="mobile-menu-toggle">☰</button>
+        
+        <!-- 侧边栏遮罩（移动端） -->
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+        
+        <!-- 侧边栏 -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="sidebar-logo">🎬 AniGen</h1>
+                <p class="sidebar-subtitle">AI动画生成系统</p>
+            </div>
+            <nav id="sidebar-menu" class="sidebar-menu">
+                <!-- 菜单项将通过 menu-config.js 动态生成 -->
+            </nav>
+        </aside>
+        
+        <!-- 主内容区域 -->
+        <main class="main-content-wrapper">
+            <div class="container">
+        <header>
+            <h1>🏞️ 场景资源管理</h1>
+            <p class="subtitle">上传和管理场景资源，包括多个视角的图片</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="upload">上传场景</button>
+            <button class="tab" data-tab="list">场景列表</button>
+        </div>
+
+        <!-- 上传标签页 -->
+        <div class="tab-content active" id="uploadTab">
+            <section class="upload-section">
+                <h2>场景信息</h2>
+                <form id="sceneForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="name">场景名称 *</label>
+                        <input type="text" id="name" name="name" required placeholder="例如：森林小屋">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">场景描述</label>
+                        <textarea id="description" name="description" rows="3" required placeholder="场景的详细描述，包括环境、氛围等信息"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="location_type">场景类型</label>
+                            <select id="location_type" name="location_type">
+                                <option value="">请选择</option>
+                                <option value="室内">室内</option>
+                                <option value="室外">室外</option>
+                                <option value="城市">城市</option>
+                                <option value="自然">自然</option>
+                                <option value="建筑">建筑</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="time_of_day">时间</label>
+                            <select id="time_of_day" name="time_of_day">
+                                <option value="">请选择</option>
+                                <option value="白天">白天</option>
+                                <option value="夜晚">夜晚</option>
+                                <option value="黄昏">黄昏</option>
+                                <option value="黎明">黎明</option>
+                                <option value="正午">正午</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="weather">天气</label>
+                            <select id="weather" name="weather">
+                                <option value="">请选择</option>
+                                <option value="晴天">晴天</option>
+                                <option value="阴天">阴天</option>
+                                <option value="雨天">雨天</option>
+                                <option value="雪天">雪天</option>
+                                <option value="雾天">雾天</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="mood">氛围</label>
+                            <select id="mood" name="mood">
+                                <option value="">请选择</option>
+                                <option value="温馨">温馨</option>
+                                <option value="紧张">紧张</option>
+                                <option value="神秘">神秘</option>
+                                <option value="轻松">轻松</option>
+                                <option value="悲伤">悲伤</option>
+                                <option value="欢乐">欢乐</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="style">风格</label>
+                            <select id="style" name="style">
+                                <option value="">请选择</option>
+                                <option value="anime">Anime（二次元）</option>
+                                <option value="cartoon">Cartoon（卡通）</option>
+                                <option value="realistic">Realistic（写实）</option>
+                                <option value="3D">3D</option>
+                                <option value="pixar">Pixar</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tags">标签（逗号分隔）</label>
+                        <input type="text" id="tags" name="tags" placeholder="例如：森林,小屋,自然">
+                    </div>
+
+                    <h3 style="margin-top: 2rem; margin-bottom: 1rem;">场景图片</h3>
+                    <p style="margin-bottom: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+                        可以添加1到多张图片，每张图片需要选择视角标签。支持预设标签和自定义标签。
+                    </p>
+
+                    <div id="imagesContainer">
+                        <!-- 图片项将通过 JavaScript 动态添加 -->
+                    </div>
+
+                    <button type="button" class="btn btn-secondary" id="addImageBtn" style="margin-top: 1rem;">
+                        ➕ 添加图片
+                    </button>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">上传场景</button>
+                        <button type="reset" class="btn btn-secondary">重置</button>
+                    </div>
+                </form>
+
+                <div id="messageArea"></div>
+            </section>
+        </div>
+
+        <!-- 列表标签页 -->
+        <div class="tab-content" id="listTab">
+            <section class="upload-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2>场景列表</h2>
+                    <button class="btn btn-small" id="refreshBtn">刷新</button>
+                </div>
+
+                <div class="form-row" style="margin-bottom: 1.5rem;">
+                    <div class="form-group">
+                        <input type="text" id="searchKeyword" placeholder="搜索关键词...">
+                    </div>
+                    <div class="form-group">
+                        <select id="filterLocationType">
+                            <option value="">所有类型</option>
+                            <option value="室内">室内</option>
+                            <option value="室外">室外</option>
+                            <option value="城市">城市</option>
+                            <option value="自然">自然</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select id="filterStyle">
+                            <option value="">所有风格</option>
+                            <option value="anime">Anime</option>
+                            <option value="cartoon">Cartoon</option>
+                            <option value="realistic">Realistic</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="searchBtn">搜索</button>
+                    </div>
+                </div>
+
+                <div class="loading" id="listLoading" style="display: none;">加载中...</div>
+                <div class="scene-list" id="sceneList">
+                    <!-- 场景列表将通过 JavaScript 动态生成 -->
+                </div>
+            </section>
+        </div>
+
+        <footer>
+            <p>AniGen - AI动画生成项目</p>
+        </footer>
+            </div>
+        </main>
+    </div>
+
+    <script src="./menu-config.js"></script>
+    <script src="./scene-upload.js"></script>
+</body>
+</html>
+

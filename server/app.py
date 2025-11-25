@@ -15,7 +15,7 @@ import sys
 # 添加项目根目录到路径
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.assets import AssetManager, Character, ResourceType
+from src.assets import AssetManager, Character, Scene, ResourceType
 from server.character_generator import RandomCharacterGenerator
 from src.assets.prompt_generator import NanoBananaPromptGenerator
 from src.script import ScriptParser
@@ -27,6 +27,8 @@ CORS(app)  # 允许跨域请求
 # 配置
 UPLOAD_FOLDER = Path(__file__).parent.parent / "assets" / "images" / "character"
 UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
+SCENE_UPLOAD_FOLDER = Path(__file__).parent.parent / "assets" / "images" / "scene"
+SCENE_UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 
@@ -581,12 +583,239 @@ def list_resources():
         }), 500
 
 
+@app.route("/api/scenes", methods=["POST"])
+def create_scene():
+    """创建场景资源
+    
+    支持表单数据和 JSON 数据
+    """
+    try:
+        # 获取表单数据
+        name = request.form.get("name", "").strip()
+        description = request.form.get("description", "").strip()
+        location_type = request.form.get("location_type", "").strip()
+        time_of_day = request.form.get("time_of_day", "").strip()
+        weather = request.form.get("weather", "").strip()
+        mood = request.form.get("mood", "").strip()
+        style = request.form.get("style", "").strip()
+        tags_str = request.form.get("tags", "").strip()
+        
+        # 验证必填字段
+        if not name:
+            return jsonify({"success": False, "error": "场景名称不能为空"}), 400
+        
+        # 解析标签
+        tags = [tag.strip() for tag in tags_str.split(",") if tag.strip()] if tags_str else []
+        
+        # 处理图片上传（支持动态标签）
+        images = {}
+        
+        # 收集所有图片（image_file_0, image_label_0 等）
+        image_index = 0
+        while True:
+            file_key = f"image_file_{image_index}"
+            label_key = f"image_label_{image_index}"
+            
+            if file_key not in request.files:
+                break
+            
+            file = request.files[file_key]
+            label = request.form.get(label_key, "").strip()
+            
+            if file and file.filename and allowed_file(file.filename) and label:
+                # 生成唯一文件名
+                ext = Path(file.filename).suffix.lower()
+                unique_filename = f"{uuid.uuid4()}{ext}"
+                filepath = SCENE_UPLOAD_FOLDER / unique_filename
+                file.save(filepath)
+                images[label] = str(filepath.relative_to(ASSETS_DIR))
+            
+            image_index += 1
+        
+        # 创建场景
+        scene = asset_manager.add_scene(
+            name=name,
+            description=description,
+            location_type=location_type,
+            time_of_day=time_of_day if time_of_day else None,
+            weather=weather if weather else None,
+            mood=mood,
+            style=style,
+            tags=tags,
+            images=images if images else None,
+        )
+        
+        return jsonify({
+            "success": True,
+            "data": scene.to_dict(),
+            "message": "场景创建成功"
+        }), 201
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+@app.route("/api/scenes", methods=["GET"])
+def list_scenes():
+    """获取场景列表
+    
+    查询参数:
+    - keyword: 关键词搜索
+    - tags: 标签过滤（逗号分隔）
+    - location_type: 场景类型过滤
+    - mood: 氛围过滤
+    - style: 风格过滤
+    """
+    try:
+        keyword = request.args.get("keyword", "").strip()
+        tags_str = request.args.get("tags", "").strip()
+        location_type = request.args.get("location_type", "").strip()
+        mood = request.args.get("mood", "").strip()
+        style = request.args.get("style", "").strip()
+        
+        # 解析标签
+        tags = [tag.strip() for tag in tags_str.split(",") if tag.strip()] if tags_str else None
+        
+        # 搜索场景
+        if keyword or tags or location_type or mood or style:
+            scenes = asset_manager.search_resources(
+                keyword=keyword if keyword else None,
+                tags=tags,
+                resource_type=ResourceType.SCENE
+            )
+            # 过滤条件
+            if location_type:
+                scenes = [s for s in scenes if isinstance(s, Scene) and s.location_type == location_type]
+            if mood:
+                scenes = [s for s in scenes if isinstance(s, Scene) and s.mood == mood]
+            if style:
+                scenes = [s for s in scenes if isinstance(s, Scene) and s.style == style]
+        else:
+            scenes = asset_manager.list_resources(ResourceType.SCENE)
+        
+        # 转换为字典列表
+        scenes_data = [s.to_dict() for s in scenes if isinstance(s, Scene)]
+        
+        return jsonify({
+            "success": True,
+            "data": scenes_data,
+            "count": len(scenes_data)
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+@app.route("/api/scenes/<scene_id>", methods=["GET"])
+def get_scene(scene_id: str):
+    """获取场景详情"""
+    try:
+        scene = asset_manager.get_resource(scene_id)
+        
+        if not scene or not isinstance(scene, Scene):
+            return jsonify({
+                "success": False,
+                "error": "场景不存在"
+            }), 404
+        
+        return jsonify({
+            "success": True,
+            "data": scene.to_dict()
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+@app.route("/api/scenes/<scene_id>", methods=["PUT"])
+def update_scene(scene_id: str):
+    """更新场景"""
+    try:
+        scene = asset_manager.get_resource(scene_id)
+        
+        if not scene or not isinstance(scene, Scene):
+            return jsonify({
+                "success": False,
+                "error": "场景不存在"
+            }), 404
+        
+        # 获取 JSON 数据
+        data = request.get_json() or {}
+        
+        # 更新字段
+        if "name" in data:
+            scene.name = data["name"]
+        if "description" in data:
+            scene.description = data["description"]
+        if "location_type" in data:
+            scene.location_type = data["location_type"]
+        if "time_of_day" in data:
+            scene.time_of_day = data["time_of_day"]
+        if "weather" in data:
+            scene.weather = data["weather"]
+        if "mood" in data:
+            scene.mood = data["mood"]
+        if "style" in data:
+            scene.style = data["style"]
+        if "tags" in data:
+            scene.tags = data["tags"]
+        
+        # 更新资源
+        asset_manager.update_resource(scene)
+        
+        return jsonify({
+            "success": True,
+            "data": scene.to_dict(),
+            "message": "场景更新成功"
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+@app.route("/api/scenes/<scene_id>", methods=["DELETE"])
+def delete_scene(scene_id: str):
+    """删除场景"""
+    try:
+        success = asset_manager.delete_resource(scene_id)
+        
+        if not success:
+            return jsonify({
+                "success": False,
+                "error": "场景不存在"
+            }), 404
+        
+        return jsonify({
+            "success": True,
+            "message": "场景删除成功"
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
 if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 5001))  # 默认使用 5001 端口，避免与 AirPlay 冲突
     print(f"启动服务器...")
     print(f"资源目录: {ASSETS_DIR}")
-    print(f"上传目录: {UPLOAD_FOLDER}")
+    print(f"角色上传目录: {UPLOAD_FOLDER}")
+    print(f"场景上传目录: {SCENE_UPLOAD_FOLDER}")
     print(f"访问地址: http://localhost:{port}")
     app.run(debug=True, host="0.0.0.0", port=port)
 
