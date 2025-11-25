@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nano Banana Prompt 生成器 - AniGen</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 Nano Banana Prompt 生成器</h1>
+            <p class="subtitle">输入角色描述信息，自动生成所有图片的 prompt</p>
+        </header>
+
+        <div class="main-content">
+            <!-- 输入表单 -->
+            <section class="input-section">
+                <h2>角色信息</h2>
+                <form id="characterForm">
+                    <div class="form-group">
+                        <label for="appearance">外观描述 *</label>
+                        <textarea 
+                            id="appearance" 
+                            name="appearance" 
+                            rows="3" 
+                            placeholder="例如：年轻男性，黑色短发，蓝色眼睛，穿着冒险者服装，棕色皮靴，腰间挂着剑"
+                            required
+                        ></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="age">年龄</label>
+                            <input 
+                                type="number" 
+                                id="age" 
+                                name="age" 
+                                min="1" 
+                                max="200"
+                                placeholder="例如：25"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gender">性别</label>
+                            <select id="gender" name="gender">
+                                <option value="">请选择</option>
+                                <option value="男">男</option>
+                                <option value="女">女</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="style">风格 *</label>
+                            <select id="style" name="style" required>
+                                <option value="anime">Anime（二次元）</option>
+                                <option value="cartoon">Cartoon（卡通）</option>
+                                <option value="realistic">Realistic（写实）</option>
+                                <option value="3D">3D</option>
+                                <option value="pixar">Pixar</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>需要生成的表情</label>
+                        <div class="expressions-grid" id="expressionsGrid">
+                            <!-- 表情复选框将通过 JavaScript 动态生成 -->
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="apiKey">Gemini API Key（可选，用于直接生成图片）</label>
+                        <input 
+                            type="password" 
+                            id="apiKey" 
+                            name="apiKey" 
+                            placeholder="输入您的 Gemini API Key"
+                        >
+                        <small class="form-hint">
+                            留空则只生成 prompt，不调用 API。
+                            <br>
+                            <strong>注意：</strong>由于浏览器 CORS 限制，直接调用可能失败。
+                            如果遇到 CORS 错误，请使用后端代理或 Google AI Studio。
+                            <br>
+                            获取 API Key: <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a>
+                        </small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">生成 Prompt</button>
+                        <button type="button" class="btn btn-secondary" id="clearBtn">清空</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- 生成的 Prompt 显示区域 -->
+            <section class="output-section" id="outputSection" style="display: none;">
+                <div class="output-header">
+                    <h2>生成的 Prompt</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-small btn-generate" id="generateImagesBtn" style="display: none;">
+                            <span class="btn-icon">🖼️</span> 生成图片
+                        </button>
+                        <button class="btn btn-small" id="copyAllBtn">复制全部</button>
+                    </div>
+                </div>
+
+                <div class="prompts-container" id="promptsContainer">
+                    <!-- Prompt 卡片将通过 JavaScript 动态生成 -->
+                </div>
+            </section>
+
+            <!-- 图片生成区域 -->
+            <section class="images-section" id="imagesSection" style="display: none;">
+                <div class="output-header">
+                    <h2>生成的图片</h2>
+                    <button class="btn btn-small" id="downloadAllBtn" style="display: none;">下载全部</button>
+                </div>
+                <div class="images-container" id="imagesContainer">
+                    <!-- 图片将通过 JavaScript 动态生成 -->
+                </div>
+            </section>
+        </div>
+
+        <footer>
+            <p>AniGen - AI动画生成项目</p>
+        </footer>
+    </div>
+
+    <script src="./prompt-generator.js"></script>
+</body>
+</html>
+
