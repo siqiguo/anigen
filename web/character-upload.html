@@ -215,6 +215,99 @@
             color: #991b1b;
             margin-bottom: 1rem;
         }
+
+        /* 图片项样式 */
+        .image-item {
+            background: var(--background);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .image-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .image-item-label {
+            flex: 1;
+            margin-right: 1rem;
+        }
+
+        .image-item-label select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        .image-item-label input[type="text"] {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            margin-top: 0.5rem;
+        }
+
+        .image-item-remove {
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .image-item-remove:hover {
+            background: #dc2626;
+        }
+
+        .image-item-content {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 1rem;
+            align-items: start;
+        }
+
+        .image-item-preview {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 6px;
+            box-shadow: var(--shadow);
+        }
+
+        .image-item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .label-type-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .label-type-toggle button {
+            padding: 0.25rem 0.75rem;
+            border: 1px solid var(--border-color);
+            background: var(--surface);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .label-type-toggle button.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
     </style>
 </head>
 <body>
@@ -288,49 +381,18 @@
                         <input type="text" id="tags" name="tags" placeholder="例如：主角,冒险者,男性">
                     </div>
 
-                    <h3 style="margin-top: 2rem; margin-bottom: 1rem;">三视图</h3>
+                    <h3 style="margin-top: 2rem; margin-bottom: 1rem;">角色图片</h3>
+                    <p style="margin-bottom: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+                        可以添加1到多张图片，每张图片需要选择标签。支持预设标签和自定义标签。
+                    </p>
 
-                    <div class="file-upload-group">
-                        <label class="file-upload-label">前视图</label>
-                        <div class="file-input-wrapper">
-                            <input type="file" id="front_view" name="front_view" accept="image/*" class="file-input">
-                            <label for="front_view" class="file-input-button" id="front_view_label">
-                                <span>📷 选择图片</span>
-                                <span class="file-name" id="front_view_name"></span>
-                            </label>
-                        </div>
-                        <img id="front_view_preview" class="file-preview" style="display: none;">
+                    <div id="imagesContainer">
+                        <!-- 图片项将通过 JavaScript 动态添加 -->
                     </div>
 
-                    <div class="file-upload-group">
-                        <label class="file-upload-label">侧视图</label>
-                        <div class="file-input-wrapper">
-                            <input type="file" id="side_view" name="side_view" accept="image/*" class="file-input">
-                            <label for="side_view" class="file-input-button" id="side_view_label">
-                                <span>📷 选择图片</span>
-                                <span class="file-name" id="side_view_name"></span>
-                            </label>
-                        </div>
-                        <img id="side_view_preview" class="file-preview" style="display: none;">
-                    </div>
-
-                    <div class="file-upload-group">
-                        <label class="file-upload-label">后视图</label>
-                        <div class="file-input-wrapper">
-                            <input type="file" id="back_view" name="back_view" accept="image/*" class="file-input">
-                            <label for="back_view" class="file-input-button" id="back_view_label">
-                                <span>📷 选择图片</span>
-                                <span class="file-name" id="back_view_name"></span>
-                            </label>
-                        </div>
-                        <img id="back_view_preview" class="file-preview" style="display: none;">
-                    </div>
-
-                    <h3 style="margin-top: 2rem; margin-bottom: 1rem;">表情图片</h3>
-
-                    <div class="expressions-upload" id="expressionsUpload">
-                        <!-- 表情上传区域将通过 JavaScript 动态生成 -->
-                    </div>
+                    <button type="button" class="btn btn-secondary" id="addImageBtn" style="margin-top: 1rem;">
+                        ➕ 添加图片
+                    </button>
 
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">上传角色</button>

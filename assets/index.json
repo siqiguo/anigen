@@ -1,0 +1,31 @@
+{
+  "cc0ff34a-f277-484a-9ff1-c03382f870c4": {
+    "id": "cc0ff34a-f277-484a-9ff1-c03382f870c4",
+    "name": "小帅",
+    "resource_type": "character",
+    "description": "年轻男性，长得帅，阳光开朗，有点风趣, 25岁。学识渊博，擅长用风趣的语言讲述知识。",
+    "tags": [],
+    "image_path": null,
+    "metadata": {},
+    "created_at": "2025-11-25T13:56:48.248428",
+    "updated_at": "2025-11-25T13:56:48.249052",
+    "appearance": "年轻男性，长得帅，下巴尖，阳光开朗，有点风趣, 25",
+    "personality": "阳光开朗，有点风趣",
+    "age": 25,
+    "gender": "男",
+    "style": "anime",
+    "images": {
+      "front_view": "images/character/066dbaeb-4a8a-4241-b82d-6bafc5247ee4.jpg",
+      "side_view": "images/character/d4183820-8f4a-4138-a06b-0cffacf0d22e.jpg",
+      "expression_excited": "images/character/be595280-db06-46d0-bec8-d3eb70e62fd8.jpg",
+      "expression_surprised": "images/character/23394c37-974f-42e9-bbb8-16b62d1af6fd.jpg"
+    },
+    "front_view": "images/character/066dbaeb-4a8a-4241-b82d-6bafc5247ee4.jpg",
+    "side_view": "images/character/d4183820-8f4a-4138-a06b-0cffacf0d22e.jpg",
+    "back_view": null,
+    "expressions": {
+      "excited": "images/character/be595280-db06-46d0-bec8-d3eb70e62fd8.jpg",
+      "surprised": "images/character/23394c37-974f-42e9-bbb8-16b62d1af6fd.jpg"
+    }
+  }
+}

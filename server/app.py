@@ -5,6 +5,7 @@ AniGen 资源管理 API 服务器
 """
 
 import os
+import uuid
 from pathlib import Path
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
@@ -99,49 +100,79 @@ def create_character():
             except ValueError:
                 return jsonify({"success": False, "error": "年龄必须是数字"}), 400
         
-        # 处理文件上传
-        front_view = None
-        side_view = None
-        back_view = None
-        expressions = {}
+        # 处理图片上传（新格式：支持动态标签）
+        images = {}
         
-        # 三视图
-        if "front_view" in request.files:
-            file = request.files["front_view"]
-            if file and file.filename and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                filepath = UPLOAD_FOLDER / filename
+        # 收集所有图片（新格式：image_file_0, image_label_0 等）
+        image_index = 0
+        while True:
+            file_key = f"image_file_{image_index}"
+            label_key = f"image_label_{image_index}"
+            
+            if file_key not in request.files:
+                break
+            
+            file = request.files[file_key]
+            label = request.form.get(label_key, "").strip()
+            
+            if file and file.filename and allowed_file(file.filename) and label:
+                # 生成唯一文件名
+                ext = Path(file.filename).suffix.lower()
+                unique_filename = f"{uuid.uuid4()}{ext}"
+                filepath = UPLOAD_FOLDER / unique_filename
                 file.save(filepath)
-                front_view = str(filepath.relative_to(ASSETS_DIR))
+                images[label] = str(filepath.relative_to(ASSETS_DIR))
+            
+            image_index += 1
         
-        if "side_view" in request.files:
-            file = request.files["side_view"]
-            if file and file.filename and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                filepath = UPLOAD_FOLDER / filename
-                file.save(filepath)
-                side_view = str(filepath.relative_to(ASSETS_DIR))
-        
-        if "back_view" in request.files:
-            file = request.files["back_view"]
-            if file and file.filename and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                filepath = UPLOAD_FOLDER / filename
-                file.save(filepath)
-                back_view = str(filepath.relative_to(ASSETS_DIR))
-        
-        # 表情图片
-        for key in request.files:
-            if key.startswith("expression_"):
-                expr_name = key.replace("expression_", "")
-                file = request.files[key]
+        # 向后兼容：处理旧格式的三视图和表情
+        if not images:
+            front_view = None
+            side_view = None
+            back_view = None
+            expressions = {}
+            
+            # 三视图
+            if "front_view" in request.files:
+                file = request.files["front_view"]
                 if file and file.filename and allowed_file(file.filename):
-                    filename = secure_filename(file.filename)
-                    filepath = UPLOAD_FOLDER / filename
+                    ext = Path(file.filename).suffix.lower()
+                    unique_filename = f"{uuid.uuid4()}{ext}"
+                    filepath = UPLOAD_FOLDER / unique_filename
                     file.save(filepath)
-                    expressions[expr_name] = str(filepath.relative_to(ASSETS_DIR))
+                    images["front_view"] = str(filepath.relative_to(ASSETS_DIR))
+            
+            if "side_view" in request.files:
+                file = request.files["side_view"]
+                if file and file.filename and allowed_file(file.filename):
+                    ext = Path(file.filename).suffix.lower()
+                    unique_filename = f"{uuid.uuid4()}{ext}"
+                    filepath = UPLOAD_FOLDER / unique_filename
+                    file.save(filepath)
+                    images["side_view"] = str(filepath.relative_to(ASSETS_DIR))
+            
+            if "back_view" in request.files:
+                file = request.files["back_view"]
+                if file and file.filename and allowed_file(file.filename):
+                    ext = Path(file.filename).suffix.lower()
+                    unique_filename = f"{uuid.uuid4()}{ext}"
+                    filepath = UPLOAD_FOLDER / unique_filename
+                    file.save(filepath)
+                    images["back_view"] = str(filepath.relative_to(ASSETS_DIR))
+            
+            # 表情图片
+            for key in request.files:
+                if key.startswith("expression_"):
+                    expr_name = key.replace("expression_", "")
+                    file = request.files[key]
+                    if file and file.filename and allowed_file(file.filename):
+                        ext = Path(file.filename).suffix.lower()
+                        unique_filename = f"{uuid.uuid4()}{ext}"
+                        filepath = UPLOAD_FOLDER / unique_filename
+                        file.save(filepath)
+                        images[f"expression_{expr_name}"] = str(filepath.relative_to(ASSETS_DIR))
         
-        # 创建角色
+        # 创建角色（使用asset_manager，但需要手动设置images）
         character = asset_manager.add_character(
             name=name,
             description=description,
@@ -151,11 +182,14 @@ def create_character():
             gender=gender if gender else None,
             style=style,
             tags=tags,
-            front_view=front_view,
-            side_view=side_view,
-            back_view=back_view,
-            expressions=expressions if expressions else None,
         )
+        
+        # 添加图片
+        for label, image_path in images.items():
+            character.add_image(label, image_path)
+        
+        # 更新索引
+        asset_manager.update_resource(character)
         
         return jsonify({
             "success": True,
@@ -548,9 +582,11 @@ def list_resources():
 
 
 if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 5001))  # 默认使用 5001 端口，避免与 AirPlay 冲突
     print(f"启动服务器...")
     print(f"资源目录: {ASSETS_DIR}")
     print(f"上传目录: {UPLOAD_FOLDER}")
-    print(f"访问地址: http://localhost:5000")
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    print(f"访问地址: http://localhost:{port}")
+    app.run(debug=True, host="0.0.0.0", port=port)
 

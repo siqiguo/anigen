@@ -2,19 +2,24 @@
  * 角色资源上传页面 - JavaScript
  */
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = "http://localhost:5001/api";
 
-// 标准表情列表
-const STANDARD_EXPRESSIONS = [
-    { key: "happy", name: "开心" },
-    { key: "sad", name: "悲伤" },
-    { key: "angry", name: "愤怒" },
-    { key: "surprised", name: "惊讶" },
-    { key: "neutral", name: "中性/平静" },
-    { key: "scared", name: "害怕" },
-    { key: "excited", name: "兴奋" },
-    { key: "confused", name: "困惑" },
+// 预设图片标签
+const PRESET_IMAGE_LABELS = [
+    { value: "front_view", label: "正视图" },
+    { value: "side_view", label: "侧视图" },
+    { value: "back_view", label: "后视图" },
+    { value: "expression_happy", label: "表情-开心" },
+    { value: "expression_sad", label: "表情-悲伤" },
+    { value: "expression_angry", label: "表情-愤怒" },
+    { value: "expression_surprised", label: "表情-惊讶" },
+    { value: "expression_neutral", label: "表情-中性/平静" },
+    { value: "expression_scared", label: "表情-害怕" },
+    { value: "expression_excited", label: "表情-兴奋" },
+    { value: "expression_confused", label: "表情-困惑" },
 ];
+
+let imageCounter = 0;  // 用于生成唯一的图片项ID
 
 class CharacterUploadUI {
     constructor() {
@@ -23,8 +28,7 @@ class CharacterUploadUI {
 
     init() {
         this.setupTabs();
-        this.setupFileUploads();
-        this.setupExpressions();
+        this.setupImageUploads();
         this.setupForm();
         this.setupList();
         this.setupRandomGenerator();
@@ -58,86 +62,171 @@ class CharacterUploadUI {
     }
 
     /**
-     * 设置文件上传预览
+     * 设置图片上传功能
      */
-    setupFileUploads() {
-        const fileInputs = ["front_view", "side_view", "back_view"];
-        
-        fileInputs.forEach(inputId => {
-            const input = document.getElementById(inputId);
-            const label = document.getElementById(`${inputId}_label`);
-            const nameSpan = document.getElementById(`${inputId}_name`);
-            const preview = document.getElementById(`${inputId}_preview`);
-            
-            input.addEventListener("change", (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    nameSpan.textContent = file.name;
-                    label.classList.add("has-file");
-                    
-                    // 显示预览
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        preview.src = e.target.result;
-                        preview.style.display = "block";
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    nameSpan.textContent = "";
-                    label.classList.remove("has-file");
-                    preview.style.display = "none";
-                }
-            });
+    setupImageUploads() {
+        const addImageBtn = document.getElementById("addImageBtn");
+        addImageBtn.addEventListener("click", () => {
+            this.addImageItem();
         });
+
+        // 默认添加一个图片项
+        this.addImageItem();
     }
 
     /**
-     * 设置表情上传区域
+     * 添加图片项
      */
-    setupExpressions() {
-        const container = document.getElementById("expressionsUpload");
-        container.innerHTML = "";
+    addImageItem() {
+        const container = document.getElementById("imagesContainer");
+        const itemId = `image_${imageCounter++}`;
+        
+        const item = document.createElement("div");
+        item.className = "image-item";
+        item.id = itemId;
 
-        STANDARD_EXPRESSIONS.forEach(expr => {
-            const item = document.createElement("div");
-            item.className = "expression-upload-item";
+        const header = document.createElement("div");
+        header.className = "image-item-header";
 
-            const label = document.createElement("label");
-            label.className = "file-upload-label";
-            label.textContent = expr.name;
+        const labelDiv = document.createElement("div");
+        labelDiv.className = "image-item-label";
 
-            const inputWrapper = document.createElement("div");
-            inputWrapper.className = "file-input-wrapper";
+        // 标签类型选择（预设/自定义）
+        const labelTypeToggle = document.createElement("div");
+        labelTypeToggle.className = "label-type-toggle";
+        
+        const presetBtn = document.createElement("button");
+        presetBtn.type = "button";
+        presetBtn.textContent = "预设标签";
+        presetBtn.classList.add("active");
+        presetBtn.dataset.type = "preset";
+        
+        const customBtn = document.createElement("button");
+        customBtn.type = "button";
+        customBtn.textContent = "自定义标签";
+        customBtn.dataset.type = "custom";
 
-            const input = document.createElement("input");
-            input.type = "file";
-            input.name = `expression_${expr.key}`;
-            input.id = `expression_${expr.key}`;
-            input.accept = "image/*";
-            input.className = "file-input";
+        labelTypeToggle.appendChild(presetBtn);
+        labelTypeToggle.appendChild(customBtn);
 
-            const inputButton = document.createElement("label");
-            inputButton.htmlFor = `expression_${expr.key}`;
-            inputButton.className = "file-input-button";
-            inputButton.innerHTML = `<span>📷 选择图片</span>`;
+        // 预设标签选择
+        const presetSelect = document.createElement("select");
+        presetSelect.name = `${itemId}_label_preset`;
+        presetSelect.className = "label-select";
+        presetSelect.style.display = "block";
+        
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.textContent = "请选择标签";
+        presetSelect.appendChild(defaultOption);
 
-            input.addEventListener("change", (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    inputButton.classList.add("has-file");
-                    inputButton.querySelector("span").textContent = file.name;
-                } else {
-                    inputButton.classList.remove("has-file");
-                    inputButton.querySelector("span").textContent = "📷 选择图片";
-                }
-            });
-
-            inputWrapper.appendChild(input);
-            inputWrapper.appendChild(inputButton);
-            item.appendChild(label);
-            item.appendChild(inputWrapper);
-            container.appendChild(item);
+        PRESET_IMAGE_LABELS.forEach(preset => {
+            const option = document.createElement("option");
+            option.value = preset.value;
+            option.textContent = preset.label;
+            presetSelect.appendChild(option);
         });
+
+        // 自定义标签输入
+        const customInput = document.createElement("input");
+        customInput.type = "text";
+        customInput.name = `${itemId}_label_custom`;
+        customInput.className = "label-input";
+        customInput.placeholder = "输入自定义标签";
+        customInput.style.display = "none";
+
+        labelDiv.appendChild(labelTypeToggle);
+        labelDiv.appendChild(presetSelect);
+        labelDiv.appendChild(customInput);
+
+        // 删除按钮
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "image-item-remove";
+        removeBtn.textContent = "删除";
+        removeBtn.addEventListener("click", () => {
+            item.remove();
+        });
+
+        header.appendChild(labelDiv);
+        header.appendChild(removeBtn);
+
+        // 内容区域
+        const content = document.createElement("div");
+        content.className = "image-item-content";
+
+        // 图片预览
+        const previewDiv = document.createElement("div");
+        const preview = document.createElement("img");
+        preview.className = "image-item-preview";
+        preview.style.display = "none";
+        preview.alt = "图片预览";
+        previewDiv.appendChild(preview);
+
+        // 文件选择
+        const fileInputWrapper = document.createElement("div");
+        fileInputWrapper.className = "file-input-wrapper";
+        
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.name = `${itemId}_file`;
+        fileInput.accept = "image/*";
+        fileInput.className = "file-input";
+        fileInput.style.display = "none";
+
+        const fileButton = document.createElement("label");
+        fileButton.htmlFor = fileInput.id || `${itemId}_file_input`;
+        fileButton.className = "file-input-button";
+        fileButton.innerHTML = `<span>📷 选择图片</span>`;
+        fileButton.style.cursor = "pointer";
+
+        fileInput.id = `${itemId}_file_input`;
+        fileButton.setAttribute("for", fileInput.id);
+
+        fileInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                fileButton.querySelector("span").textContent = file.name;
+                fileButton.classList.add("has-file");
+                
+                // 显示预览
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.src = e.target.result;
+                    preview.style.display = "block";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        fileInputWrapper.appendChild(fileInput);
+        fileInputWrapper.appendChild(fileButton);
+
+        const infoDiv = document.createElement("div");
+        infoDiv.className = "image-item-info";
+        infoDiv.appendChild(fileInputWrapper);
+
+        content.appendChild(previewDiv);
+        content.appendChild(infoDiv);
+
+        // 标签类型切换
+        presetBtn.addEventListener("click", () => {
+            presetBtn.classList.add("active");
+            customBtn.classList.remove("active");
+            presetSelect.style.display = "block";
+            customInput.style.display = "none";
+        });
+
+        customBtn.addEventListener("click", () => {
+            customBtn.classList.add("active");
+            presetBtn.classList.remove("active");
+            presetSelect.style.display = "none";
+            customInput.style.display = "block";
+        });
+
+        item.appendChild(header);
+        item.appendChild(content);
+        container.appendChild(item);
     }
 
     /**
@@ -160,15 +249,71 @@ class CharacterUploadUI {
         const messageArea = document.getElementById("messageArea");
         const submitBtn = form.querySelector('button[type="submit"]');
 
+        // 收集图片数据
+        const imageItems = document.querySelectorAll(".image-item");
+        const images = [];
+        
+        imageItems.forEach(item => {
+            const fileInput = item.querySelector('input[type="file"]');
+            const presetSelect = item.querySelector('.label-select');
+            const customInput = item.querySelector('.label-input');
+            const presetBtn = item.querySelector('button[data-type="preset"]');
+            
+            if (fileInput && fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                let label = "";
+                
+                // 判断使用预设还是自定义标签
+                if (presetBtn && presetBtn.classList.contains("active")) {
+                    label = presetSelect.value;
+                } else {
+                    label = customInput.value.trim();
+                }
+                
+                if (label) {
+                    images.push({
+                        label: label,
+                        file: file
+                    });
+                }
+            }
+        });
+
+        if (images.length === 0) {
+            messageArea.innerHTML = `
+                <div class="error-message">
+                    ❌ 请至少添加一张图片
+                </div>
+            `;
+            return;
+        }
+
         // 显示加载状态
         submitBtn.disabled = true;
         submitBtn.textContent = "上传中...";
         messageArea.innerHTML = "";
 
         try {
+            // 添加基本表单数据
+            const basicFormData = new FormData();
+            basicFormData.append("name", formData.get("name") || "");
+            basicFormData.append("description", formData.get("description") || "");
+            basicFormData.append("appearance", formData.get("appearance") || "");
+            basicFormData.append("personality", formData.get("personality") || "");
+            basicFormData.append("age", formData.get("age") || "");
+            basicFormData.append("gender", formData.get("gender") || "");
+            basicFormData.append("style", formData.get("style") || "");
+            basicFormData.append("tags", formData.get("tags") || "");
+
+            // 添加图片数据
+            images.forEach((img, index) => {
+                basicFormData.append(`image_label_${index}`, img.label);
+                basicFormData.append(`image_file_${index}`, img.file);
+            });
+
             const response = await fetch(`${API_BASE_URL}/characters`, {
                 method: "POST",
-                body: formData
+                body: basicFormData
             });
 
             const result = await response.json();
@@ -180,7 +325,7 @@ class CharacterUploadUI {
                     </div>
                 `;
                 form.reset();
-                this.resetFileInputs();
+                this.resetImageInputs();
                 
                 // 切换到列表页显示新角色
                 setTimeout(() => {
@@ -198,7 +343,7 @@ class CharacterUploadUI {
             messageArea.innerHTML = `
                 <div class="error-message">
                     ❌ 上传失败: ${error.message}
-                    <br>请确保后端服务器正在运行 (http://localhost:5000)
+                    <br>请确保后端服务器正在运行 (http://localhost:5001)
                 </div>
             `;
         } finally {
@@ -208,31 +353,14 @@ class CharacterUploadUI {
     }
 
     /**
-     * 重置文件输入
+     * 重置图片输入
      */
-    resetFileInputs() {
-        const fileInputs = ["front_view", "side_view", "back_view"];
-        fileInputs.forEach(inputId => {
-            const input = document.getElementById(inputId);
-            const label = document.getElementById(`${inputId}_label`);
-            const nameSpan = document.getElementById(`${inputId}_name`);
-            const preview = document.getElementById(`${inputId}_preview`);
-            
-            input.value = "";
-            nameSpan.textContent = "";
-            label.classList.remove("has-file");
-            preview.style.display = "none";
-        });
-
-        // 重置表情输入
-        document.querySelectorAll('input[name^="expression_"]').forEach(input => {
-            input.value = "";
-            const button = input.nextElementSibling;
-            if (button) {
-                button.classList.remove("has-file");
-                button.querySelector("span").textContent = "📷 选择图片";
-            }
-        });
+    resetImageInputs() {
+        const container = document.getElementById("imagesContainer");
+        container.innerHTML = "";
+        imageCounter = 0;
+        // 重新添加一个空的图片项
+        this.addImageItem();
     }
 
     /**
@@ -499,43 +627,56 @@ class CharacterUploadUI {
         const imagesDiv = document.createElement("div");
         imagesDiv.className = "character-images";
 
-        if (character.front_view) {
-            const img = document.createElement("img");
-            img.className = "character-image";
-            img.src = `${API_BASE_URL}/images/${character.front_view}`;
-            img.alt = "前视图";
-            img.title = "前视图";
-            imagesDiv.appendChild(img);
-        }
-
-        if (character.side_view) {
-            const img = document.createElement("img");
-            img.className = "character-image";
-            img.src = `${API_BASE_URL}/images/${character.side_view}`;
-            img.alt = "侧视图";
-            img.title = "侧视图";
-            imagesDiv.appendChild(img);
-        }
-
-        if (character.back_view) {
-            const img = document.createElement("img");
-            img.className = "character-image";
-            img.src = `${API_BASE_URL}/images/${character.back_view}`;
-            img.alt = "后视图";
-            img.title = "后视图";
-            imagesDiv.appendChild(img);
-        }
-
-        if (character.expressions) {
-            Object.entries(character.expressions).forEach(([key, path]) => {
-                const expr = STANDARD_EXPRESSIONS.find(e => e.key === key);
+        // 显示所有图片（新格式）
+        if (character.images) {
+            Object.entries(character.images).forEach(([label, path]) => {
                 const img = document.createElement("img");
                 img.className = "character-image";
                 img.src = `${API_BASE_URL}/images/${path}`;
-                img.alt = expr ? expr.name : key;
-                img.title = expr ? expr.name : key;
+                img.alt = label;
+                img.title = label;
                 imagesDiv.appendChild(img);
             });
+        } else {
+            // 向后兼容：显示旧格式的图片
+            if (character.front_view) {
+                const img = document.createElement("img");
+                img.className = "character-image";
+                img.src = `${API_BASE_URL}/images/${character.front_view}`;
+                img.alt = "前视图";
+                img.title = "前视图";
+                imagesDiv.appendChild(img);
+            }
+
+            if (character.side_view) {
+                const img = document.createElement("img");
+                img.className = "character-image";
+                img.src = `${API_BASE_URL}/images/${character.side_view}`;
+                img.alt = "侧视图";
+                img.title = "侧视图";
+                imagesDiv.appendChild(img);
+            }
+
+            if (character.back_view) {
+                const img = document.createElement("img");
+                img.className = "character-image";
+                img.src = `${API_BASE_URL}/images/${character.back_view}`;
+                img.alt = "后视图";
+                img.title = "后视图";
+                imagesDiv.appendChild(img);
+            }
+
+            if (character.expressions) {
+                Object.entries(character.expressions).forEach(([key, path]) => {
+                    const expr = STANDARD_EXPRESSIONS.find(e => e.key === key);
+                    const img = document.createElement("img");
+                    img.className = "character-image";
+                    img.src = `${API_BASE_URL}/images/${path}`;
+                    img.alt = expr ? expr.name : key;
+                    img.title = expr ? expr.name : key;
+                    imagesDiv.appendChild(img);
+                });
+            }
         }
 
         card.appendChild(header);

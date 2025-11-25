@@ -70,29 +70,103 @@ class Character(Asset):
     age: Optional[int] = None  # 年龄
     gender: Optional[str] = None  # 性别
     style: str = ""  # 风格（如：卡通、写实、二次元等）
-    # 三视图
-    front_view: Optional[str] = None  # 前视图图片路径
-    side_view: Optional[str] = None  # 侧视图图片路径
-    back_view: Optional[str] = None  # 后视图图片路径
-    # 表情字典，key为表情名称，value为图片路径
-    expressions: Dict[str, str] = field(default_factory=dict)  # 表情图片路径字典
+    # 图片字典，key为图片标签（如：front_view, side_view, back_view, expression_happy等或自定义标签），value为图片路径
+    images: Dict[str, str] = field(default_factory=dict)  # 图片路径字典
+    
+    # 为了向后兼容，保留以下属性作为快捷方式
+    @property
+    def front_view(self) -> Optional[str]:
+        """前视图（向后兼容）"""
+        return self.images.get("front_view") or self.images.get("正视图") or self.images.get("前视图")
+    
+    @front_view.setter
+    def front_view(self, value: Optional[str]) -> None:
+        """设置前视图（向后兼容）"""
+        if value:
+            self.images["front_view"] = value
+    
+    @property
+    def side_view(self) -> Optional[str]:
+        """侧视图（向后兼容）"""
+        return self.images.get("side_view") or self.images.get("侧视图")
+    
+    @side_view.setter
+    def side_view(self, value: Optional[str]) -> None:
+        """设置侧视图（向后兼容）"""
+        if value:
+            self.images["side_view"] = value
+    
+    @property
+    def back_view(self) -> Optional[str]:
+        """后视图（向后兼容）"""
+        return self.images.get("back_view") or self.images.get("后视图")
+    
+    @back_view.setter
+    def back_view(self, value: Optional[str]) -> None:
+        """设置后视图（向后兼容）"""
+        if value:
+            self.images["back_view"] = value
+    
+    @property
+    def expressions(self) -> Dict[str, str]:
+        """表情字典（向后兼容）"""
+        result = {}
+        for key, value in self.images.items():
+            if key.startswith("expression_") or key in ["happy", "sad", "angry", "surprised", "neutral", "scared", "excited", "confused"]:
+                result[key.replace("expression_", "")] = value
+        return result
+    
+    def add_image(self, label: str, image_path: str) -> None:
+        """添加图片
+        
+        Args:
+            label: 图片标签（如：front_view, 正视图, 自定义标签等）
+            image_path: 图片路径
+        """
+        self.images[label] = image_path
+        self.updated_at = datetime.now()
+    
+    def remove_image(self, label: str) -> bool:
+        """移除图片
+        
+        Args:
+            label: 图片标签
+            
+        Returns:
+            是否成功移除
+        """
+        if label in self.images:
+            del self.images[label]
+            self.updated_at = datetime.now()
+            return True
+        return False
+    
+    def get_image(self, label: str) -> Optional[str]:
+        """获取图片路径
+        
+        Args:
+            label: 图片标签
+            
+        Returns:
+            图片路径，如果不存在返回None
+        """
+        return self.images.get(label)
     
     def __post_init__(self):
         """初始化后处理"""
         self.resource_type = ResourceType.CHARACTER
     
     def add_expression(self, expression_name: str, image_path: str) -> None:
-        """添加表情
+        """添加表情（向后兼容）
         
         Args:
             expression_name: 表情名称（如：happy, sad, angry, surprised等）
             image_path: 表情图片路径
         """
-        self.expressions[expression_name] = image_path
-        self.updated_at = datetime.now()
+        self.add_image(f"expression_{expression_name}", image_path)
     
     def remove_expression(self, expression_name: str) -> bool:
-        """移除表情
+        """移除表情（向后兼容）
         
         Args:
             expression_name: 表情名称
@@ -100,22 +174,18 @@ class Character(Asset):
         Returns:
             是否成功移除
         """
-        if expression_name in self.expressions:
-            del self.expressions[expression_name]
-            self.updated_at = datetime.now()
-            return True
-        return False
+        return self.remove_image(f"expression_{expression_name}")
     
     def get_expression(self, expression_name: str) -> Optional[str]:
-        """获取表情图片路径
+        """获取表情图片路径（向后兼容）
         
         Args:
             expression_name: 表情名称
             
         Returns:
-            表情图片路径，如果不存在返回None
+            图片路径，如果不存在返回None
         """
-        return self.expressions.get(expression_name)
+        return self.get_image(f"expression_{expression_name}")
     
     def to_dict(self) -> Dict[str, Any]:
         """转换为字典格式"""
@@ -126,6 +196,8 @@ class Character(Asset):
             "age": self.age,
             "gender": self.gender,
             "style": self.style,
+            "images": self.images,
+            # 向后兼容字段
             "front_view": self.front_view,
             "side_view": self.side_view,
             "back_view": self.back_view,
@@ -138,8 +210,24 @@ class Character(Asset):
         """从字典创建角色对象"""
         asset_data = {k: v for k, v in data.items() 
                      if k not in ["appearance", "personality", "age", "gender", "style",
-                                 "front_view", "side_view", "back_view", "expressions"]}
+                                 "front_view", "side_view", "back_view", "expressions", "images"]}
         asset = Asset.from_dict(asset_data)
+        
+        # 处理图片数据
+        images = data.get("images", {})
+        
+        # 向后兼容：如果使用旧格式，转换为新格式
+        if not images:
+            if data.get("front_view"):
+                images["front_view"] = data["front_view"]
+            if data.get("side_view"):
+                images["side_view"] = data["side_view"]
+            if data.get("back_view"):
+                images["back_view"] = data["back_view"]
+            if data.get("expressions"):
+                for expr_name, expr_path in data["expressions"].items():
+                    images[f"expression_{expr_name}"] = expr_path
+        
         return cls(
             id=asset.id,
             name=asset.name,
@@ -155,10 +243,7 @@ class Character(Asset):
             age=data.get("age"),
             gender=data.get("gender"),
             style=data.get("style", ""),
-            front_view=data.get("front_view"),
-            side_view=data.get("side_view"),
-            back_view=data.get("back_view"),
-            expressions=data.get("expressions", {}),
+            images=images,
         )
 
 
