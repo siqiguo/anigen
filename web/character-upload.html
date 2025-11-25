@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>角色资源上传 - AniGen</title>
+    <link rel="stylesheet" href="./styles.css">
+    <style>
+        .upload-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 2rem;
+        }
+
+        .file-upload-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .file-upload-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            background: var(--background);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-input-button:hover {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .file-input-button.has-file {
+            border-color: var(--success-color);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .file-name {
+            margin-left: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .file-preview {
+            margin-top: 0.5rem;
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 6px;
+            box-shadow: var(--shadow);
+        }
+
+        .expressions-upload {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .expression-upload-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .character-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .character-card {
+            background: var(--background);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: box-shadow 0.2s;
+        }
+
+        .character-card:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .character-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .character-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .character-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .character-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+        }
+
+        .character-images {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .character-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 6px;
+            box-shadow: var(--shadow);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            margin-bottom: -2px;
+        }
+
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .success-message {
+            padding: 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success-color);
+            border-radius: 6px;
+            color: #065f46;
+            margin-bottom: 1rem;
+        }
+
+        .error-message {
+            padding: 1rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            border-radius: 6px;
+            color: #991b1b;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎭 角色资源管理</h1>
+            <p class="subtitle">上传和管理角色资源，包括三视图和表情</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="upload">上传角色</button>
+            <button class="tab" data-tab="list">角色列表</button>
+        </div>
+
+        <!-- 上传标签页 -->
+        <div class="tab-content active" id="uploadTab">
+            <section class="upload-section">
+                <h2>角色信息</h2>
+                <form id="characterForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="name">角色名称 *</label>
+                        <input type="text" id="name" name="name" required placeholder="例如：主角小明">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">角色描述</label>
+                        <textarea id="description" name="description" rows="2" placeholder="角色的简要描述"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="appearance">外观描述 *</label>
+                        <textarea id="appearance" name="appearance" rows="3" required placeholder="例如：年轻男性，黑色短发，蓝色眼睛，穿着冒险者服装"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="personality">性格描述</label>
+                        <textarea id="personality" name="personality" rows="2" placeholder="例如：勇敢、乐观、善良"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="age">年龄</label>
+                            <input type="number" id="age" name="age" min="1" max="200" placeholder="例如：25">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gender">性别</label>
+                            <select id="gender" name="gender">
+                                <option value="">请选择</option>
+                                <option value="男">男</option>
+                                <option value="女">女</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="style">风格</label>
+                            <select id="style" name="style">
+                                <option value="">请选择</option>
+                                <option value="anime">Anime（二次元）</option>
+                                <option value="cartoon">Cartoon（卡通）</option>
+                                <option value="realistic">Realistic（写实）</option>
+                                <option value="3D">3D</option>
+                                <option value="pixar">Pixar</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tags">标签（逗号分隔）</label>
+                        <input type="text" id="tags" name="tags" placeholder="例如：主角,冒险者,男性">
+                    </div>
+
+                    <h3 style="margin-top: 2rem; margin-bottom: 1rem;">三视图</h3>
+
+                    <div class="file-upload-group">
+                        <label class="file-upload-label">前视图</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="front_view" name="front_view" accept="image/*" class="file-input">
+                            <label for="front_view" class="file-input-button" id="front_view_label">
+                                <span>📷 选择图片</span>
+                                <span class="file-name" id="front_view_name"></span>
+                            </label>
+                        </div>
+                        <img id="front_view_preview" class="file-preview" style="display: none;">
+                    </div>
+
+                    <div class="file-upload-group">
+                        <label class="file-upload-label">侧视图</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="side_view" name="side_view" accept="image/*" class="file-input">
+                            <label for="side_view" class="file-input-button" id="side_view_label">
+                                <span>📷 选择图片</span>
+                                <span class="file-name" id="side_view_name"></span>
+                            </label>
+                        </div>
+                        <img id="side_view_preview" class="file-preview" style="display: none;">
+                    </div>
+
+                    <div class="file-upload-group">
+                        <label class="file-upload-label">后视图</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="back_view" name="back_view" accept="image/*" class="file-input">
+                            <label for="back_view" class="file-input-button" id="back_view_label">
+                                <span>📷 选择图片</span>
+                                <span class="file-name" id="back_view_name"></span>
+                            </label>
+                        </div>
+                        <img id="back_view_preview" class="file-preview" style="display: none;">
+                    </div>
+
+                    <h3 style="margin-top: 2rem; margin-bottom: 1rem;">表情图片</h3>
+
+                    <div class="expressions-upload" id="expressionsUpload">
+                        <!-- 表情上传区域将通过 JavaScript 动态生成 -->
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">上传角色</button>
+                        <button type="button" class="btn btn-secondary" id="randomBtn">🎲 随机生成角色</button>
+                        <button type="reset" class="btn btn-secondary">重置</button>
+                    </div>
+                </form>
+
+                <div id="messageArea"></div>
+                
+                <!-- 随机生成的角色预览 -->
+                <div id="randomCharacterPreview" style="display: none; margin-top: 2rem;">
+                    <h3>随机生成的角色</h3>
+                    <div id="randomCharacterContent"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 列表标签页 -->
+        <div class="tab-content" id="listTab">
+            <section class="upload-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2>角色列表</h2>
+                    <button class="btn btn-small" id="refreshBtn">刷新</button>
+                </div>
+
+                <div class="form-row" style="margin-bottom: 1.5rem;">
+                    <div class="form-group">
+                        <input type="text" id="searchKeyword" placeholder="搜索关键词...">
+                    </div>
+                    <div class="form-group">
+                        <select id="filterStyle">
+                            <option value="">所有风格</option>
+                            <option value="anime">Anime</option>
+                            <option value="cartoon">Cartoon</option>
+                            <option value="realistic">Realistic</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="searchBtn">搜索</button>
+                    </div>
+                </div>
+
+                <div class="loading" id="listLoading" style="display: none;">加载中...</div>
+                <div class="character-list" id="characterList">
+                    <!-- 角色列表将通过 JavaScript 动态生成 -->
+                </div>
+            </section>
+        </div>
+
+        <footer>
+            <p>AniGen - AI动画生成项目</p>
+        </footer>
+    </div>
+
+    <script src="./character-upload.js"></script>
+</body>
+</html>
+
