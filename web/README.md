@@ -1,156 +1,112 @@
-# Nano Banana Prompt 生成器 - 前端页面
+# Web 界面说明
 
-这是一个用于生成 Nano Banana AI 图像生成 prompt 的前端工具页面。
+## 页面结构
 
-## 功能特性
+所有页面都使用统一的布局，包含左侧菜单栏和主内容区域。
 
-- ✅ 简洁直观的表单界面
-- ✅ 自动生成三视图 prompt（前视图、侧视图、后视图）
-- ✅ 自动生成多种表情 prompt（8种标准表情）
-- ✅ 支持自定义表情选择
-- ✅ 一键复制单个 prompt
-- ✅ 一键复制所有 prompt
-- ✅ **直接调用 Gemini 3.0 API 生成图片**（需 API Key）
-- ✅ 图片预览和下载功能
-- ✅ 响应式设计，支持移动端
+## 添加新页面
 
-## 使用方法
+### 1. 创建 HTML 文件
 
-### 1. 打开页面
+在 `web/` 目录下创建新的 HTML 文件，例如 `new-page.html`。
 
-直接在浏览器中打开 `prompt-generator.html` 文件即可使用。
+### 2. 使用标准布局结构
 
-### 2. 填写角色信息
+在 HTML 文件中使用以下结构：
 
-在表单中填写以下信息：
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>页面标题 - AniGen</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+    <!-- 应用布局 -->
+    <div class="app-layout">
+        <!-- 移动端菜单按钮 -->
+        <button id="mobile-menu-toggle" class="mobile-menu-toggle">☰</button>
+        
+        <!-- 侧边栏遮罩（移动端） -->
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+        
+        <!-- 侧边栏 -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="sidebar-logo">🎬 AniGen</h1>
+                <p class="sidebar-subtitle">AI动画生成系统</p>
+            </div>
+            <nav id="sidebar-menu" class="sidebar-menu">
+                <!-- 菜单项将通过 menu-config.js 动态生成 -->
+            </nav>
+        </aside>
+        
+        <!-- 主内容区域 -->
+        <main class="main-content-wrapper">
+            <div class="container">
+                <!-- 你的页面内容 -->
+            </div>
+        </main>
+    </div>
 
-- **外观描述**（必填）：详细描述角色的外观特征
-  - 例如：`年轻男性，黑色短发，蓝色眼睛，穿着冒险者服装，棕色皮靴，腰间挂着剑`
-  
-- **年龄**（可选）：角色的年龄
-  
-- **性别**（可选）：角色的性别
-  
-- **风格**（必填）：选择角色的艺术风格
-  - Anime（二次元）
-  - Cartoon（卡通）
-  - Realistic（写实）
-  - 3D
-  - Pixar
-
-- **需要生成的表情**：选择需要生成的表情（默认全选）
-  - 开心 (happy)
-  - 悲伤 (sad)
-  - 愤怒 (angry)
-  - 惊讶 (surprised)
-  - 中性/平静 (neutral)
-  - 害怕 (scared)
-  - 兴奋 (excited)
-  - 困惑 (confused)
-
-### 3. 生成 Prompt
-
-点击"生成 Prompt"按钮，系统会自动生成所有需要的 prompt。
-
-### 4. 复制 Prompt
-
-- **复制单个 prompt**：点击每个 prompt 卡片右上角的"复制"按钮
-- **复制全部 prompt**：点击输出区域顶部的"复制全部"按钮
-
-### 5. 生成图片（可选）
-
-如果输入了 Gemini API Key，可以点击"生成图片"按钮直接调用 Gemini 3.0 API 生成图片：
-
-1. **获取 API Key**：
-   - 访问 [Google AI Studio](https://aistudio.google.com/apikey)
-   - 创建并复制您的 API Key
-
-2. **输入 API Key**：
-   - 在表单的"Gemini API Key"字段中输入您的 API Key
-
-3. **生成图片**：
-   - 生成 Prompt 后，点击"生成图片"按钮
-   - 系统会自动为每个 prompt 生成对应的图片
-   - 生成完成后可以预览和下载图片
-
-**注意**：
-- 由于浏览器 CORS 限制，直接调用 API 可能会失败
-- 如果遇到 CORS 错误，建议：
-  - 使用后端代理服务器
-  - 或使用 Google AI Studio 网页版手动生成
-  - 或配置 CORS 代理
-
-## 文件结构
-
-```
-web/
-├── prompt-generator.html  # 主页面
-├── prompt-generator.js    # JavaScript 逻辑
-├── styles.css             # 样式文件
-└── README.md              # 本文件
+    <script src="./menu-config.js"></script>
+    <script src="./your-script.js"></script>
+</body>
+</html>
 ```
 
-## 技术实现
+### 3. 更新菜单配置
 
-- **纯前端实现**：无需后端服务器，可直接在浏览器中运行
-- **原生 JavaScript**：不依赖任何框架，轻量高效
-- **响应式设计**：使用 CSS Grid 和 Flexbox，适配各种屏幕尺寸
-- **现代 UI**：使用 CSS 变量和现代设计风格
+在 `menu-config.js` 中添加新菜单项：
 
-## 示例
-
-### 输入示例
-
-```
-外观描述: 年轻女性，银色长发，紫色眼睛，穿着魔法师袍，手持法杖
-年龄: 22
-性别: 女
-风格: Anime（二次元）
-表情: 全选
+```javascript
+const menuConfig = [
+    // ... 现有菜单项
+    {
+        title: "新页面",
+        icon: "🎯",
+        url: "./new-page.html",
+        id: "new-page"
+    }
+];
 ```
 
-### 输出示例
+**注意：**
+- `id` 应该与 HTML 文件名（去掉 `.html` 后缀）一致
+- `url` 是相对于当前文件的路径
+- `icon` 可以使用任何 emoji 或图标
 
-生成的 prompt 包括：
+### 4. 完成
 
-1. **前视图 (Front View)**
-2. **侧视图 (Side View)**
-3. **后视图 (Back View)**
-4. **开心 (happy)**
-5. **悲伤 (sad)**
-6. **愤怒 (angry)**
-7. **惊讶 (surprised)**
-8. **中性/平静 (neutral)**
-9. **害怕 (scared)**
-10. **兴奋 (excited)**
-11. **困惑 (confused)**
+保存文件后，新页面会自动出现在左侧菜单栏中，并且当前页面会被高亮显示。
 
-每个 prompt 都是完整的、可直接用于 Nano Banana API 的文本。
+## 菜单配置说明
 
-## 注意事项
+`menu-config.js` 文件包含所有页面的菜单配置。每次添加新页面时，只需：
 
-1. **外观描述要详细**：越详细的描述，生成的 prompt 质量越高
-2. **保持一致性**：所有 prompt 会自动使用相同的角色描述，确保生成的角色图片一致
-3. **风格选择**：选择合适的风格会影响生成图片的艺术风格
-4. **表情选择**：可以根据实际需求选择需要的表情，不必全部生成
-5. **API Key 安全**：API Key 仅存储在浏览器本地，不会上传到服务器
-6. **CORS 限制**：直接调用 Gemini API 可能因浏览器 CORS 限制而失败，建议使用后端代理
-7. **API 费用**：使用 Gemini API 生成图片可能产生费用，请查看 Google Cloud 定价页面
+1. 在 `menuConfig` 数组中添加新的菜单项对象
+2. 确保 `id` 与 HTML 文件名匹配
+3. 菜单会自动更新，当前页面会自动高亮
 
-## 浏览器兼容性
+## 响应式设计
 
-- Chrome/Edge（推荐）
-- Firefox
-- Safari
-- 移动端浏览器
+- **桌面端**：侧边栏固定在左侧，始终可见
+- **移动端**：侧边栏默认隐藏，点击菜单按钮（☰）显示/隐藏
 
-需要支持以下现代 Web API：
-- Clipboard API（用于复制功能）
-- ES6+ JavaScript 特性
+## 样式定制
 
-## 与后端集成
+所有样式都在 `styles.css` 中定义，使用 CSS 变量便于主题定制：
 
-如果需要与后端 Python 代码集成，可以参考 `src/assets/prompt_generator.py` 中的实现。
+- `--primary-color`: 主色调
+- `--sidebar-width`: 侧边栏宽度（默认 260px）
+- `--background`: 背景色
+- `--surface`: 卡片/表面颜色
 
-前端 JavaScript 版本与后端 Python 版本的 prompt 生成逻辑保持一致。
+## 现有页面
 
+1. **首页** (`index.html`) - 欢迎页面，展示系统功能和工作流程
+2. **分镜生成器** (`storyboard-generator.html`) - 从剧本生成分镜脚本
+3. **角色资源管理** (`character-upload.html`) - 上传和管理角色资源
+4. **Prompt 生成器** (`prompt-generator.html`) - 生成 Nano Banana 图片生成 prompt

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>欢迎 - AniGen AI动画生成系统</title>
+    <link rel="stylesheet" href="./styles.css">
+    <style>
+        .hero-section {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            color: white;
+            border-radius: 16px;
+            margin-bottom: 3rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .hero-section h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .hero-section .subtitle {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 2rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .hero-actions .btn {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .feature-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 2px solid var(--border-color);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-link {
+            display: inline-flex;
+            align-items: center;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .feature-link:hover {
+            color: var(--primary-hover);
+        }
+
+        .feature-link::after {
+            content: "→";
+            margin-left: 0.5rem;
+            transition: transform 0.2s;
+        }
+
+        .feature-link:hover::after {
+            transform: translateX(4px);
+        }
+
+        .workflow-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .workflow-section h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 3rem;
+            color: var(--text-primary);
+        }
+
+        .workflow-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 2rem;
+            position: relative;
+        }
+
+        .workflow-step {
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            position: relative;
+        }
+
+        .workflow-step::after {
+            content: "→";
+            position: absolute;
+            right: -2rem;
+            top: 2rem;
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+
+        .workflow-step:last-child::after {
+            display: none;
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 auto 1rem;
+            box-shadow: var(--shadow);
+        }
+
+        .step-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 2px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .quick-start-section {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%);
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            border: 2px solid var(--primary-color);
+        }
+
+        .quick-start-section h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .quick-start-section p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+
+            .hero-section .subtitle {
+                font-size: 1rem;
+            }
+
+            .workflow-step::after {
+                display: none;
+            }
+
+            .workflow-steps {
+                flex-direction: column;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 应用布局 -->
+    <div class="app-layout">
+        <!-- 移动端菜单按钮 -->
+        <button id="mobile-menu-toggle" class="mobile-menu-toggle">☰</button>
+        
+        <!-- 侧边栏遮罩（移动端） -->
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+        
+        <!-- 侧边栏 -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="sidebar-logo">🎬 AniGen</h1>
+                <p class="sidebar-subtitle">AI动画生成系统</p>
+            </div>
+            <nav id="sidebar-menu" class="sidebar-menu">
+                <!-- 菜单项将通过 menu-config.js 动态生成 -->
+            </nav>
+        </aside>
+        
+        <!-- 主内容区域 -->
+        <main class="main-content-wrapper">
+            <div class="container">
+                <!-- 欢迎横幅 -->
+                <section class="hero-section">
+                    <h1>🎬 欢迎使用 AniGen</h1>
+                    <p class="subtitle">端到端的AI动画生成系统，从剧本到动画，一键完成</p>
+                    <div class="hero-actions">
+                        <a href="./storyboard-generator.html" class="btn btn-primary" style="background: white; color: var(--primary-color);">
+                            开始使用
+                        </a>
+                        <a href="#features" class="btn" style="background: rgba(255, 255, 255, 0.2); color: white; border: 2px solid white;">
+                            了解更多
+                        </a>
+                    </div>
+                </section>
+
+                <!-- 功能模块 -->
+                <section id="features" class="features-grid">
+                    <div class="feature-card">
+                        <span class="feature-icon">🎬</span>
+                        <h3>分镜生成器</h3>
+                        <p>
+                            输入您的剧本文本，系统会自动分析剧本结构，匹配资源库中的角色、场景和道具，
+                            并生成详细的分镜脚本，包括镜头类型、画面描述、时长等信息。
+                        </p>
+                        <a href="./storyboard-generator.html" class="feature-link">
+                            开始生成分镜
+                        </a>
+                    </div>
+
+                    <div class="feature-card">
+                        <span class="feature-icon">🎭</span>
+                        <h3>角色资源管理</h3>
+                        <p>
+                            上传和管理角色资源，包括角色的三视图（前视图、侧视图、后视图）和多种表情。
+                            支持批量上传，自动分类存储，方便在动画生成时快速调用。
+                        </p>
+                        <a href="./character-upload.html" class="feature-link">
+                            管理角色资源
+                        </a>
+                    </div>
+
+                    <div class="feature-card">
+                        <span class="feature-icon">🎨</span>
+                        <h3>Prompt 生成器</h3>
+                        <p>
+                            为 Nano Banana AI 图像生成工具自动生成所有必需的 prompt。
+                            只需输入角色描述，即可生成三视图和多种表情的 prompt，确保风格一致性。
+                        </p>
+                        <a href="./prompt-generator.html" class="feature-link">
+                            生成 Prompt
+                        </a>
+                    </div>
+                </section>
+
+                <!-- 工作流程 -->
+                <section class="workflow-section">
+                    <h2>🚀 工作流程</h2>
+                    <div class="workflow-steps">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-title">准备资源</div>
+                            <div class="step-description">
+                                上传角色、场景、道具等资源，或使用 Prompt 生成器创建角色图片
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-title">输入剧本</div>
+                            <div class="step-description">
+                                在分镜生成器中输入您的剧本文本，系统会自动解析剧本结构
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-title">生成分镜</div>
+                            <div class="step-description">
+                                系统自动匹配资源库，生成详细的分镜脚本，包含镜头和画面描述
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-title">生成动画</div>
+                            <div class="step-description">
+                                根据分镜脚本，使用AI技术生成最终的动画视频（即将推出）
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 统计数据 -->
+                <section class="stats-section">
+                    <div class="stat-card">
+                        <div class="stat-value">3+</div>
+                        <div class="stat-label">功能模块</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">∞</div>
+                        <div class="stat-label">资源支持</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">AI</div>
+                        <div class="stat-label">智能生成</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">100%</div>
+                        <div class="stat-label">自动化</div>
+                    </div>
+                </section>
+
+                <!-- 快速开始 -->
+                <section class="quick-start-section">
+                    <h2>✨ 快速开始</h2>
+                    <p>
+                        准备好开始您的动画创作之旅了吗？<br>
+                        选择一个功能模块，立即开始使用！
+                    </p>
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
+                        <a href="./storyboard-generator.html" class="btn btn-primary">
+                            🎬 生成分镜
+                        </a>
+                        <a href="./character-upload.html" class="btn btn-secondary">
+                            🎭 管理角色
+                        </a>
+                        <a href="./prompt-generator.html" class="btn btn-secondary">
+                            🎨 生成 Prompt
+                        </a>
+                    </div>
+                </section>
+
+                <footer>
+                    <p>AniGen - AI动画生成系统 | 让创作更简单</p>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <script src="./menu-config.js"></script>
+</body>
+</html>
+

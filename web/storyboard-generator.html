@@ -285,7 +285,28 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- 应用布局 -->
+    <div class="app-layout">
+        <!-- 移动端菜单按钮 -->
+        <button id="mobile-menu-toggle" class="mobile-menu-toggle">☰</button>
+        
+        <!-- 侧边栏遮罩（移动端） -->
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+        
+        <!-- 侧边栏 -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="sidebar-logo">🎬 AniGen</h1>
+                <p class="sidebar-subtitle">AI动画生成系统</p>
+            </div>
+            <nav id="sidebar-menu" class="sidebar-menu">
+                <!-- 菜单项将通过 menu-config.js 动态生成 -->
+            </nav>
+        </aside>
+        
+        <!-- 主内容区域 -->
+        <main class="main-content-wrapper">
+            <div class="container">
         <header>
             <h1>🎬 分镜生成器</h1>
             <p class="subtitle">输入剧本，自动分析资源库并生成文字分镜</p>
@@ -386,8 +407,11 @@
         <footer>
             <p>AniGen - AI动画生成系统</p>
         </footer>
+            </div>
+        </main>
     </div>
 
+    <script src="./menu-config.js"></script>
     <script src="./storyboard-generator.js"></script>
 </body>
 </html>
