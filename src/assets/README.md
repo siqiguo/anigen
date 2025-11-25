@@ -194,6 +194,46 @@ assets/
 
 也可以根据项目需求自定义表情名称。
 
+## Nano Banana Prompt 生成
+
+为了方便使用 Nano Banana AI 图像生成工具为角色生成所有必需的图片，提供了专门的 prompt 生成器。
+
+### 快速使用
+
+```python
+from src.assets import AssetManager
+from src.assets.prompt_generator import generate_character_prompts
+
+# 创建角色
+manager = AssetManager()
+character = manager.add_character(
+    name="主角",
+    appearance="年轻男性，黑色短发，蓝色眼睛",
+    style="anime"
+)
+
+# 生成所有 prompt
+prompts = generate_character_prompts(character)
+
+# 使用 prompt 调用 Nano Banana API 生成图片
+# front_image = nano_banana.generate(prompts["front_view"])
+# side_image = nano_banana.generate(prompts["side_view"])
+# ...
+```
+
+### Prompt 生成器功能
+
+- **自动生成三视图 prompt**：前视图、侧视图、后视图
+- **自动生成表情 prompt**：支持8种标准表情（happy, sad, angry, surprised, neutral, scared, excited, confused）
+- **自定义表情列表**：可以指定需要生成的表情
+- **简化版 prompt**：适合支持上下文记忆的 API
+- **风格一致性**：确保所有 prompt 使用相同的角色描述和风格
+
+详细说明请参考：
+- `src/assets/nano_banana_prompts.md` - 完整的 prompt 格式说明文档
+- `src/assets/prompt_generator.py` - Prompt 生成器实现
+- `src/assets/nano_banana_example.py` - 使用示例
+
 ## API参考
 
 详细API文档请参考各模块的代码文档字符串。

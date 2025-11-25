@@ -14,6 +14,10 @@ from .models import (
 )
 from .manager import AssetManager
 from .storage import AssetStorage
+from .prompt_generator import (
+    NanoBananaPromptGenerator,
+    generate_character_prompts,
+)
 
 __all__ = [
     "ResourceType",
@@ -24,5 +28,7 @@ __all__ = [
     "Action",
     "AssetManager",
     "AssetStorage",
+    "NanoBananaPromptGenerator",
+    "generate_character_prompts",
 ]
 
