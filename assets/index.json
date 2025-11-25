@@ -27,5 +27,28 @@
       "excited": "images/character/be595280-db06-46d0-bec8-d3eb70e62fd8.jpg",
       "surprised": "images/character/23394c37-974f-42e9-bbb8-16b62d1af6fd.jpg"
     }
+  },
+  "c4b4de03-128e-411d-80a3-bb223dec336b": {
+    "id": "c4b4de03-128e-411d-80a3-bb223dec336b",
+    "name": "黑熊",
+    "resource_type": "character",
+    "description": "黑熊，强壮，有点笨",
+    "tags": [],
+    "image_path": null,
+    "metadata": {},
+    "created_at": "2025-11-25T15:43:59.441899",
+    "updated_at": "2025-11-25T15:43:59.442738",
+    "appearance": "黑熊，强壮，有点笨",
+    "personality": "笨,外表强壮,内心胆小",
+    "age": 10,
+    "gender": "男",
+    "style": "anime",
+    "images": {
+      "front_view": "images/character/11d91a3b-0c29-40b9-9686-8b02ba20624d.jpg"
+    },
+    "front_view": "images/character/11d91a3b-0c29-40b9-9686-8b02ba20624d.jpg",
+    "side_view": null,
+    "back_view": null,
+    "expressions": {}
   }
 }

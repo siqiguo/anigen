@@ -2,7 +2,7 @@
  * 分镜生成器前端脚本
  */
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = 'http://localhost:5001';
 
 // DOM元素
 const scriptTextarea = document.getElementById('script-text');
@@ -91,7 +91,17 @@ async function handleGenerate() {
     } catch (error) {
         console.error('生成分镜脚本失败:', error);
         hideLoading();
-        showError(`生成失败: ${error.message}`);
+        
+        // 提供更详细的错误信息
+        let errorMsg = `生成失败: ${error.message}`;
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            errorMsg = `连接失败: 无法连接到服务器 (${API_BASE_URL})<br>
+                        <small>请确保：<br>
+                        1. 服务器正在运行 (cd server && python app.py)<br>
+                        2. 服务器地址正确 (当前: ${API_BASE_URL})<br>
+                        3. 如果使用file://打开页面，请改用HTTP服务器访问</small>`;
+        }
+        showError(errorMsg);
     }
 }
 
@@ -383,7 +393,7 @@ function updateProgress(percent, message) {
  * 显示错误消息
  */
 function showError(message) {
-    errorMessage.textContent = message;
+    errorMessage.innerHTML = message;
     errorMessage.style.display = 'block';
 }
 
