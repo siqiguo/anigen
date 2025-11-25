@@ -19,6 +19,8 @@
 - 性格描述
 - 年龄、性别
 - 风格
+- **三视图**：前视图、侧视图、后视图
+- **表情**：支持多种常见表情（happy, sad, angry, surprised, neutral, scared等）
 
 ### 2. 道具 (Prop)
 - 道具类别
@@ -46,7 +48,7 @@ from src.assets import AssetManager, ResourceType
 # 创建资源管理器
 manager = AssetManager(base_dir="./assets")
 
-# 添加角色
+# 添加角色（包含三视图和表情）
 character = manager.add_character(
     name="主角",
     description="勇敢的冒险者",
@@ -56,7 +58,15 @@ character = manager.add_character(
     gender="男",
     style="卡通",
     tags=["主角", "冒险者"],
-    image_path="./images/character.jpg"
+    front_view="./images/character_front.jpg",  # 前视图
+    side_view="./images/character_side.jpg",    # 侧视图
+    back_view="./images/character_back.jpg",    # 后视图
+    expressions={  # 表情字典
+        "happy": "./images/character_happy.jpg",
+        "sad": "./images/character_sad.jpg",
+        "angry": "./images/character_angry.jpg",
+        "surprised": "./images/character_surprised.jpg",
+    }
 )
 
 # 添加场景
@@ -100,6 +110,30 @@ manager.delete_resource(resource_id)
 # 列出所有资源
 all_resources = manager.list_resources()
 characters_only = manager.list_resources(ResourceType.CHARACTER)
+
+# 管理角色表情
+manager.add_character_expression(
+    character_id=character.id,
+    expression_name="scared",
+    expression_image_path="./images/character_scared.jpg"
+)
+
+# 移除表情
+manager.remove_character_expression(character.id, "sad")
+
+# 更新三视图
+manager.update_character_views(
+    character_id=character.id,
+    front_view="./images/new_front.jpg",
+    side_view="./images/new_side.jpg"
+)
+
+# 访问角色的三视图和表情
+print(f"前视图: {character.front_view}")
+print(f"侧视图: {character.side_view}")
+print(f"后视图: {character.back_view}")
+print(f"表情列表: {list(character.expressions.keys())}")
+print(f"开心表情: {character.get_expression('happy')}")
 ```
 
 ## 目录结构
@@ -127,12 +161,38 @@ assets/
 - `resource_type`: 资源类型
 - `description`: 详细描述
 - `tags`: 标签列表
-- `image_path`: 图片路径（相对路径）
+- `image_path`: 图片路径（相对路径，保留用于兼容性）
 - `metadata`: 额外元数据
 - `created_at`: 创建时间
 - `updated_at`: 更新时间
 
-以及各资源类型特有的字段。
+### 角色资源特有字段
+
+- `appearance`: 外观描述
+- `personality`: 性格描述
+- `age`: 年龄
+- `gender`: 性别
+- `style`: 风格
+- `front_view`: 前视图图片路径
+- `side_view`: 侧视图图片路径
+- `back_view`: 后视图图片路径
+- `expressions`: 表情字典，格式为 `{"表情名称": "图片路径"}`
+
+### 常见表情名称
+
+建议使用以下标准表情名称：
+- `happy`: 开心
+- `sad`: 悲伤
+- `angry`: 愤怒
+- `surprised`: 惊讶
+- `neutral`: 中性/平静
+- `scared`: 害怕
+- `excited`: 兴奋
+- `confused`: 困惑
+- `disgusted`: 厌恶
+- `embarrassed`: 尴尬
+
+也可以根据项目需求自定义表情名称。
 
 ## API参考
 

@@ -12,7 +12,7 @@ def example_add_resources():
     # 创建资源管理器
     manager = AssetManager(base_dir="./assets")
     
-    # 添加角色
+    # 添加角色（包含三视图和表情）
     character = manager.add_character(
         name="主角小明",
         description="勇敢的年轻冒险者，总是充满好奇心",
@@ -22,9 +22,27 @@ def example_add_resources():
         gender="男",
         style="卡通",
         tags=["主角", "冒险者", "男性"],
-        # image_path="./example_images/character.jpg"  # 如果有图片文件
+        # 三视图
+        # front_view="./example_images/character_front.jpg",
+        # side_view="./example_images/character_side.jpg",
+        # back_view="./example_images/character_back.jpg",
+        # 表情
+        # expressions={
+        #     "happy": "./example_images/character_happy.jpg",
+        #     "sad": "./example_images/character_sad.jpg",
+        #     "angry": "./example_images/character_angry.jpg",
+        #     "surprised": "./example_images/character_surprised.jpg",
+        # }
     )
     print(f"添加角色: {character.name} (ID: {character.id})")
+    if character.front_view:
+        print(f"  前视图: {character.front_view}")
+    if character.side_view:
+        print(f"  侧视图: {character.side_view}")
+    if character.back_view:
+        print(f"  后视图: {character.back_view}")
+    if character.expressions:
+        print(f"  表情: {list(character.expressions.keys())}")
     
     # 添加场景
     scene = manager.add_scene(

@@ -44,6 +44,10 @@ class AssetManager:
         style: str = "",
         tags: Optional[List[str]] = None,
         image_path: Optional[str] = None,
+        front_view: Optional[str] = None,
+        side_view: Optional[str] = None,
+        back_view: Optional[str] = None,
+        expressions: Optional[Dict[str, str]] = None,
         metadata: Optional[Dict[str, Any]] = None
     ) -> Character:
         """添加角色资源
@@ -57,7 +61,12 @@ class AssetManager:
             gender: 性别
             style: 风格
             tags: 标签列表
-            image_path: 图片路径
+            image_path: 主图片路径（保留用于兼容性，建议使用三视图）
+            front_view: 前视图图片路径
+            side_view: 侧视图图片路径
+            back_view: 后视图图片路径
+            expressions: 表情字典，key为表情名称，value为图片路径
+                        常见表情名称：happy, sad, angry, surprised, neutral, scared等
             metadata: 额外元数据
             
         Returns:
@@ -75,10 +84,37 @@ class AssetManager:
             metadata=metadata or {},
         )
         
+        # 保存主图片（兼容旧接口）
         if image_path:
             character.image_path = self.storage.save_image(
                 image_path, character.id, ResourceType.CHARACTER
             )
+        
+        # 保存三视图
+        if front_view:
+            character.front_view = self.storage.save_image(
+                front_view, character.id, ResourceType.CHARACTER, suffix="_front"
+            )
+        if side_view:
+            character.side_view = self.storage.save_image(
+                side_view, character.id, ResourceType.CHARACTER, suffix="_side"
+            )
+        if back_view:
+            character.back_view = self.storage.save_image(
+                back_view, character.id, ResourceType.CHARACTER, suffix="_back"
+            )
+        
+        # 保存表情图片
+        if expressions:
+            for expression_name, expression_path in expressions.items():
+                if expression_path:
+                    saved_path = self.storage.save_image(
+                        expression_path, 
+                        character.id, 
+                        ResourceType.CHARACTER, 
+                        suffix=f"_expression_{expression_name}"
+                    )
+                    character.add_expression(expression_name, saved_path)
         
         self.storage.add_to_index(character)
         return character
@@ -274,6 +310,20 @@ class AssetManager:
         if resource.image_path:
             self.storage.delete_image(resource.image_path)
         
+        # 如果是角色资源，删除三视图和表情
+        if isinstance(resource, Character):
+            # 删除三视图
+            if resource.front_view:
+                self.storage.delete_image(resource.front_view)
+            if resource.side_view:
+                self.storage.delete_image(resource.side_view)
+            if resource.back_view:
+                self.storage.delete_image(resource.back_view)
+            # 删除表情
+            for expression_path in resource.expressions.values():
+                if expression_path:
+                    self.storage.delete_image(expression_path)
+        
         # 从索引中移除
         self.storage.remove_from_index(resource_id)
         return True
@@ -338,6 +388,121 @@ class AssetManager:
             characters = [c for c in characters if c.style == style]
         
         return characters[0] if characters else None
+    
+    def add_character_expression(
+        self,
+        character_id: str,
+        expression_name: str,
+        expression_image_path: str
+    ) -> bool:
+        """为角色添加表情
+        
+        Args:
+            character_id: 角色ID
+            expression_name: 表情名称（如：happy, sad, angry等）
+            expression_image_path: 表情图片路径
+            
+        Returns:
+            是否添加成功
+        """
+        character = self.get_resource(character_id)
+        if not isinstance(character, Character):
+            return False
+        
+        # 保存表情图片
+        saved_path = self.storage.save_image(
+            expression_image_path,
+            character.id,
+            ResourceType.CHARACTER,
+            suffix=f"_expression_{expression_name}"
+        )
+        
+        # 添加到角色
+        character.add_expression(expression_name, saved_path)
+        self.update_resource(character)
+        return True
+    
+    def remove_character_expression(
+        self,
+        character_id: str,
+        expression_name: str
+    ) -> bool:
+        """移除角色的表情
+        
+        Args:
+            character_id: 角色ID
+            expression_name: 表情名称
+            
+        Returns:
+            是否移除成功
+        """
+        character = self.get_resource(character_id)
+        if not isinstance(character, Character):
+            return False
+        
+        # 获取表情路径
+        expression_path = character.get_expression(expression_name)
+        if not expression_path:
+            return False
+        
+        # 删除图片文件
+        self.storage.delete_image(expression_path)
+        
+        # 从角色中移除
+        character.remove_expression(expression_name)
+        self.update_resource(character)
+        return True
+    
+    def update_character_views(
+        self,
+        character_id: str,
+        front_view: Optional[str] = None,
+        side_view: Optional[str] = None,
+        back_view: Optional[str] = None
+    ) -> bool:
+        """更新角色的三视图
+        
+        Args:
+            character_id: 角色ID
+            front_view: 前视图图片路径（可选）
+            side_view: 侧视图图片路径（可选）
+            back_view: 后视图图片路径（可选）
+            
+        Returns:
+            是否更新成功
+        """
+        character = self.get_resource(character_id)
+        if not isinstance(character, Character):
+            return False
+        
+        # 更新前视图
+        if front_view:
+            # 删除旧的前视图
+            if character.front_view:
+                self.storage.delete_image(character.front_view)
+            # 保存新的前视图
+            character.front_view = self.storage.save_image(
+                front_view, character.id, ResourceType.CHARACTER, suffix="_front"
+            )
+        
+        # 更新侧视图
+        if side_view:
+            if character.side_view:
+                self.storage.delete_image(character.side_view)
+            character.side_view = self.storage.save_image(
+                side_view, character.id, ResourceType.CHARACTER, suffix="_side"
+            )
+        
+        # 更新后视图
+        if back_view:
+            if character.back_view:
+                self.storage.delete_image(character.back_view)
+            character.back_view = self.storage.save_image(
+                back_view, character.id, ResourceType.CHARACTER, suffix="_back"
+            )
+        
+        self.update_resource(character)
+        return True
     
     def find_matching_scene(
         self,

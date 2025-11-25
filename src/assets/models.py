@@ -63,17 +63,59 @@ class Asset:
 class Character(Asset):
     """角色资源
     
-    用于动画中的角色资源，包含角色的外观、特征等信息。
+    用于动画中的角色资源，包含角色的外观、特征、三视图和表情等信息。
     """
     appearance: str = ""  # 外观描述
     personality: str = ""  # 性格描述
     age: Optional[int] = None  # 年龄
     gender: Optional[str] = None  # 性别
     style: str = ""  # 风格（如：卡通、写实、二次元等）
+    # 三视图
+    front_view: Optional[str] = None  # 前视图图片路径
+    side_view: Optional[str] = None  # 侧视图图片路径
+    back_view: Optional[str] = None  # 后视图图片路径
+    # 表情字典，key为表情名称，value为图片路径
+    expressions: Dict[str, str] = field(default_factory=dict)  # 表情图片路径字典
     
     def __post_init__(self):
         """初始化后处理"""
         self.resource_type = ResourceType.CHARACTER
+    
+    def add_expression(self, expression_name: str, image_path: str) -> None:
+        """添加表情
+        
+        Args:
+            expression_name: 表情名称（如：happy, sad, angry, surprised等）
+            image_path: 表情图片路径
+        """
+        self.expressions[expression_name] = image_path
+        self.updated_at = datetime.now()
+    
+    def remove_expression(self, expression_name: str) -> bool:
+        """移除表情
+        
+        Args:
+            expression_name: 表情名称
+            
+        Returns:
+            是否成功移除
+        """
+        if expression_name in self.expressions:
+            del self.expressions[expression_name]
+            self.updated_at = datetime.now()
+            return True
+        return False
+    
+    def get_expression(self, expression_name: str) -> Optional[str]:
+        """获取表情图片路径
+        
+        Args:
+            expression_name: 表情名称
+            
+        Returns:
+            表情图片路径，如果不存在返回None
+        """
+        return self.expressions.get(expression_name)
     
     def to_dict(self) -> Dict[str, Any]:
         """转换为字典格式"""
@@ -84,6 +126,10 @@ class Character(Asset):
             "age": self.age,
             "gender": self.gender,
             "style": self.style,
+            "front_view": self.front_view,
+            "side_view": self.side_view,
+            "back_view": self.back_view,
+            "expressions": self.expressions,
         })
         return base_dict
     
@@ -91,7 +137,8 @@ class Character(Asset):
     def from_dict(cls, data: Dict[str, Any]) -> "Character":
         """从字典创建角色对象"""
         asset_data = {k: v for k, v in data.items() 
-                     if k not in ["appearance", "personality", "age", "gender", "style"]}
+                     if k not in ["appearance", "personality", "age", "gender", "style",
+                                 "front_view", "side_view", "back_view", "expressions"]}
         asset = Asset.from_dict(asset_data)
         return cls(
             id=asset.id,
@@ -108,6 +155,10 @@ class Character(Asset):
             age=data.get("age"),
             gender=data.get("gender"),
             style=data.get("style", ""),
+            front_view=data.get("front_view"),
+            side_view=data.get("side_view"),
+            back_view=data.get("back_view"),
+            expressions=data.get("expressions", {}),
         )
 
 

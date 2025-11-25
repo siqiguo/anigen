@@ -78,13 +78,20 @@ class AssetStorage:
         """
         return self.base_dir / "images"
     
-    def save_image(self, image_path: str, resource_id: str, resource_type: ResourceType) -> str:
+    def save_image(
+        self, 
+        image_path: str, 
+        resource_id: str, 
+        resource_type: ResourceType,
+        suffix: str = ""
+    ) -> str:
         """保存图片文件
         
         Args:
             image_path: 源图片路径
             resource_id: 资源ID
             resource_type: 资源类型
+            suffix: 文件名后缀（用于区分同一资源的不同图片，如：_front, _side, _expression_happy等）
             
         Returns:
             保存后的图片路径（相对路径）
@@ -100,7 +107,10 @@ class AssetStorage:
         # 构建目标路径
         image_dir = self.get_image_dir() / resource_type.value
         image_dir.mkdir(parents=True, exist_ok=True)
-        target_path = image_dir / f"{resource_id}{ext}"
+        
+        # 构建文件名：resource_id + suffix + ext
+        filename = f"{resource_id}{suffix}{ext}"
+        target_path = image_dir / filename
         
         # 复制文件
         shutil.copy2(image_path, target_path)
@@ -114,6 +124,9 @@ class AssetStorage:
         Args:
             image_path: 图片路径（相对路径或绝对路径）
         """
+        if not image_path:
+            return
+            
         if os.path.isabs(image_path):
             full_path = Path(image_path)
         else:
@@ -121,6 +134,26 @@ class AssetStorage:
         
         if full_path.exists():
             full_path.unlink()
+    
+    def delete_character_images(self, character_id: str, expressions: Dict[str, str]) -> None:
+        """删除角色的所有图片（三视图和表情）
+        
+        Args:
+            character_id: 角色ID
+            expressions: 表情字典
+        """
+        # 删除三视图（如果存在）
+        image_dir = self.get_image_dir() / ResourceType.CHARACTER.value
+        for suffix in ["", "_front", "_side", "_back"]:
+            for ext in [".jpg", ".jpeg", ".png", ".gif", ".webp"]:
+                image_path = image_dir / f"{character_id}{suffix}{ext}"
+                if image_path.exists():
+                    image_path.unlink()
+        
+        # 删除表情图片
+        for expression_path in expressions.values():
+            if expression_path:
+                self.delete_image(expression_path)
     
     def add_to_index(self, asset: Asset) -> None:
         """添加资源到索引
