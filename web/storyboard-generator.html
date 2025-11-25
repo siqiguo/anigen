@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分镜生成器 - AniGen</title>
+    <link rel="stylesheet" href="./styles.css">
+    <style>
+        .script-input-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 2rem;
+        }
+
+        .script-textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            resize: vertical;
+        }
+
+        .script-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .script-example {
+            margin-top: 0.5rem;
+            padding: 1rem;
+            background: var(--background);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .script-example code {
+            font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+            white-space: pre-wrap;
+        }
+
+        .resources-preview {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 2rem;
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .resource-card {
+            background: var(--background);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: box-shadow 0.2s;
+        }
+
+        .resource-card:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .resource-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .resource-card-header h4 {
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .resource-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .resource-badge.character {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .resource-badge.scene {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .resource-badge.prop {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .resource-badge.action {
+            background: #fce7f3;
+            color: #9f1239;
+        }
+
+        .resource-info {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .storyboard-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 2rem;
+        }
+
+        .storyboard-stats {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--background);
+            border-radius: 8px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .shots-list {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .shot-card {
+            background: var(--background);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: box-shadow 0.2s;
+        }
+
+        .shot-card:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .shot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .shot-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .shot-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .shot-content {
+            margin-top: 1rem;
+        }
+
+        .shot-description {
+            padding: 1rem;
+            background: var(--surface);
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .shot-resources {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .shot-resources-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .resource-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            margin: 0.25rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.75rem;
+        }
+
+        .resource-tag.scene {
+            background: var(--success-color);
+        }
+
+        .toggle-section {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 分镜生成器</h1>
+            <p class="subtitle">输入剧本，自动分析资源库并生成文字分镜</p>
+        </header>
+
+        <main class="main-content">
+            <!-- 剧本输入区域 -->
+            <section class="script-input-section">
+                <h2>📝 输入剧本</h2>
+                <div class="form-group">
+                    <label for="script-title">剧本标题（可选）</label>
+                    <input type="text" id="script-title" placeholder="例如：冒险开始">
+                </div>
+                <div class="form-group">
+                    <label for="script-text">剧本文本</label>
+                    <textarea 
+                        id="script-text" 
+                        class="script-textarea" 
+                        placeholder="请输入您的剧本内容..."
+                    ></textarea>
+                    <div class="script-example">
+                        <strong>示例格式：</strong>
+                        <code>场景1：神秘森林
+时间：白天
+地点：室外
+
+主角小明：这里是什么地方？看起来好神秘。（惊讶）
+主角小明：我要小心探索。（谨慎）
+
+动作：主角环顾四周，小心翼翼地前进
+
+场景2：森林深处
+时间：白天
+
+主角小明：前面好像有什么东西在发光！（兴奋）
+
+动作：主角快速向前跑去</code>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="toggle-section">
+                        <label for="prefer-resources">优先使用资源库资源</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="prefer-resources" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" id="generate-btn">
+                        <span class="btn-icon">✨</span>
+                        生成分镜脚本
+                    </button>
+                    <button class="btn btn-secondary" id="clear-btn">
+                        清空
+                    </button>
+                </div>
+            </section>
+
+            <!-- 资源预览区域 -->
+            <section class="resources-preview" id="resources-preview" style="display: none;">
+                <div class="output-header">
+                    <h2>📚 资源库匹配结果</h2>
+                </div>
+                <div id="resources-grid" class="resources-grid"></div>
+            </section>
+
+            <!-- 分镜结果区域 -->
+            <section class="storyboard-section" id="storyboard-section" style="display: none;">
+                <div class="output-header">
+                    <h2>🎞️ 生成的分镜脚本</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-copy btn-small" id="copy-json-btn">
+                            📋 复制JSON
+                        </button>
+                        <button class="btn btn-secondary btn-small" id="download-json-btn">
+                            💾 下载JSON
+                        </button>
+                    </div>
+                </div>
+                <div class="storyboard-stats" id="storyboard-stats"></div>
+                <div class="shots-list" id="shots-list"></div>
+            </section>
+
+            <!-- 加载状态 -->
+            <div class="loading" id="loading" style="display: none;">
+                <div>正在生成分镜脚本...</div>
+                <div class="loading-detail" id="loading-detail"></div>
+                <div class="progress-bar">
+                    <div class="progress" id="progress" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- 错误消息 -->
+            <div class="error-message" id="error-message" style="display: none;"></div>
+        </main>
+
+        <footer>
+            <p>AniGen - AI动画生成系统</p>
+        </footer>
+    </div>
+
+    <script src="./storyboard-generator.js"></script>
+</body>
+</html>
+

@@ -17,6 +17,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from src.assets import AssetManager, Character, ResourceType
 from server.character_generator import RandomCharacterGenerator
 from src.assets.prompt_generator import NanoBananaPromptGenerator
+from src.script import ScriptParser
+from src.storyboard import StoryboardGenerator
 
 app = Flask(__name__)
 CORS(app)  # 允许跨域请求
@@ -34,6 +36,8 @@ asset_manager = AssetManager(base_dir=str(ASSETS_DIR))
 # 初始化生成器
 character_generator = RandomCharacterGenerator()
 prompt_generator = NanoBananaPromptGenerator()
+script_parser = ScriptParser()
+storyboard_generator = StoryboardGenerator(asset_manager)
 
 
 def allowed_file(filename: str) -> bool:
@@ -54,6 +58,8 @@ def index():
             "PUT /api/characters/<id>": "更新角色",
             "DELETE /api/characters/<id>": "删除角色",
             "GET /api/images/<path>": "获取图片",
+            "POST /api/storyboard/generate": "生成分镜脚本",
+            "POST /api/script/parse": "解析剧本",
         }
     })
 
@@ -386,6 +392,152 @@ def generate_random_character():
             "success": True,
             "data": result,
             "message": "随机角色生成成功"
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+@app.route("/api/script/parse", methods=["POST"])
+def parse_script():
+    """解析剧本文本
+    
+    请求体（JSON）:
+    {
+        "script_text": "剧本文本内容",
+        "title": "剧本标题（可选）"
+    }
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "请求体不能为空"}), 400
+        
+        script_text = data.get("script_text", "").strip()
+        if not script_text:
+            return jsonify({"success": False, "error": "剧本文本不能为空"}), 400
+        
+        title = data.get("title")
+        
+        # 解析剧本
+        script_data = script_parser.parse(script_text, title)
+        
+        return jsonify({
+            "success": True,
+            "data": script_data,
+            "message": "剧本解析成功"
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+@app.route("/api/storyboard/generate", methods=["POST"])
+def generate_storyboard():
+    """生成分镜脚本
+    
+    请求体（JSON）:
+    {
+        "script_data": {
+            "title": "剧本标题",
+            "scenes": [...],
+            "characters": {...}
+        },
+        "prefer_existing_resources": true  // 是否优先使用资源库资源
+    }
+    
+    或者直接提供剧本文本:
+    {
+        "script_text": "剧本文本内容",
+        "title": "剧本标题（可选）",
+        "prefer_existing_resources": true
+    }
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "请求体不能为空"}), 400
+        
+        prefer_existing_resources = data.get("prefer_existing_resources", True)
+        
+        # 如果提供了script_text，先解析剧本
+        if "script_text" in data:
+            script_text = data.get("script_text", "").strip()
+            if not script_text:
+                return jsonify({"success": False, "error": "剧本文本不能为空"}), 400
+            
+            title = data.get("title")
+            script_data = script_parser.parse(script_text, title)
+        elif "script_data" in data:
+            script_data = data["script_data"]
+        else:
+            return jsonify({"success": False, "error": "必须提供script_text或script_data"}), 400
+        
+        # 生成分镜脚本
+        storyboard = storyboard_generator.generate_from_script(
+            script_data,
+            prefer_existing_resources=prefer_existing_resources
+        )
+        
+        # 转换为字典格式
+        storyboard_dict = storyboard.to_dict()
+        
+        return jsonify({
+            "success": True,
+            "data": storyboard_dict,
+            "message": "分镜脚本生成成功"
+        })
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }), 500
+
+
+@app.route("/api/resources/list", methods=["GET"])
+def list_resources():
+    """获取资源库中的资源列表
+    
+    查询参数:
+    - resource_type: 资源类型（character, scene, prop, action）
+    - keyword: 关键词搜索
+    """
+    try:
+        resource_type_str = request.args.get("resource_type")
+        keyword = request.args.get("keyword", "").strip()
+        
+        resource_type = None
+        if resource_type_str:
+            try:
+                resource_type = ResourceType(resource_type_str)
+            except ValueError:
+                return jsonify({"success": False, "error": f"无效的资源类型: {resource_type_str}"}), 400
+        
+        # 获取资源列表
+        if keyword:
+            resources = asset_manager.search_resources(
+                keyword=keyword,
+                resource_type=resource_type
+            )
+        else:
+            resources = asset_manager.list_resources(resource_type)
+        
+        # 转换为字典
+        resources_data = [r.to_dict() for r in resources]
+        
+        return jsonify({
+            "success": True,
+            "data": resources_data,
+            "count": len(resources_data)
         })
         
     except Exception as e:
